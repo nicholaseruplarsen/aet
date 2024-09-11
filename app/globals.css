@@ -89,7 +89,7 @@ body {
 
 #boundary {
   -webkit-transition: -webkit-transform 0.5s;
-  transition: transform 0.5s;
+  transition: transform 0.0s;
   -webkit-animation: 1s ease-out 0s 1 slideInFromLeft;
   animation: 1s ease-out 0s 1 slideInFromLeft;
 }

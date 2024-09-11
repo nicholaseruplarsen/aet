@@ -9,9 +9,9 @@ import Footer from "@/components/ui/footer"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Finly: Stock Quotes, Market News, & Analysis",
+  title: "AET",
   description:
-    "Finly is a source of free stock quotes, business and finance news, portfolio management tools, and international market data.",
+    "AI stock tracker",
 }
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Navigation />
+            {/* <Navigation /> */}
             <main className="container">{children}</main>
             <Footer />
           </ThemeProvider>

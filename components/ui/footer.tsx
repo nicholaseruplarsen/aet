@@ -15,7 +15,7 @@ export default function Footer() {
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
           >
-            Darius Lukasukas
+            Nicholas Erup Larsen
           </Link>
           . The source code is available on{" "}
           <Link

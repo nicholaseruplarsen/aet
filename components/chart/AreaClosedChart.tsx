@@ -299,7 +299,7 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
     [searchParams, pathname]
   )
 
-  const rangeOptions: Range[] = ["1d", "1w", "1m", "3m", "1y"]
+  const rangeOptions: Range[] = ["1d", "1w", "1m", "3m", "1y", "5y", "max"];
 
   const isValidRange = (r: string): r is Range =>
     rangeOptions.includes(r as Range)
@@ -349,7 +349,7 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
         )}
       </div>
       <div className="mt-1 flex flex-row">
-        {rangeOptions.map((r) => (
+      {rangeOptions.map((r) => (
           <Button
             key={r}
             variant={"ghost"}
@@ -360,7 +360,7 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
                 : "text-muted-foreground"
             }
           >
-            {r.toUpperCase()}
+            {r === "max" ? "MAX" : r.toUpperCase()}
           </Button>
         ))}
       </div>

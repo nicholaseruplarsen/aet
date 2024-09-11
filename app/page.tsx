@@ -137,7 +137,22 @@ export default async function Home({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-4 lg:flex-row">
+      <div>
+        <h2 className="py-4 text-xl font-medium">Markets</h2>
+        <Card className="flex flex-col gap-4 p-6 lg:flex-row">
+          <div className="w-full">
+            <Suspense fallback={<div>Loading...</div>}>
+              <MarketsChart ticker={ticker} range={range} interval={interval} />
+            </Suspense>
+          </div>
+        </Card>
+        <div className="w-full lg:w-1/2">
+          <Suspense fallback={<div>Loading...</div>}>
+            <DataTable columns={columns} data={resultsWithTitles} />
+          </Suspense>
+        </div>
+      </div>
+      {/* <div className="flex flex-col gap-4 lg:flex-row">
         <div className="w-full lg:w-1/2">
           <Card className="relative flex h-full min-h-[15rem] flex-col justify-between overflow-hidden">
             <CardHeader>
@@ -177,22 +192,7 @@ export default async function Home({
             </CardContent>
           </Card>
         </div>
-      </div>
-      <div>
-        <h2 className="py-4 text-xl font-medium">Markets</h2>
-        <Card className="flex flex-col gap-4 p-6 lg:flex-row">
-          <div className="w-full lg:w-1/2">
-            <Suspense fallback={<div>Loading...</div>}>
-              <DataTable columns={columns} data={resultsWithTitles} />
-            </Suspense>
-          </div>
-          <div className="w-full lg:w-1/2">
-            <Suspense fallback={<div>Loading...</div>}>
-              <MarketsChart ticker={ticker} range={range} interval={interval} />
-            </Suspense>
-          </div>
-        </Card>
-      </div>
+      </div> */}
     </div>
   )
 }

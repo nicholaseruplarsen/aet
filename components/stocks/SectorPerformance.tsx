@@ -8,12 +8,17 @@ async function fetchSectorPerformance() {
       revalidate: 3600,
     },
   }
-  const res = await fetch(url, options)
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch sector performance")
+  try {
+    const res = await fetch(url, options)
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(`Failed to fetch sector performance: ${res.status} ${res.statusText}. ${errorText}`)
+    }
+    return res.json()
+  } catch (error) {
+    console.error("Error fetching sector performance:", error)
+    throw error
   }
-  return res.json()
 }
 
 interface Sector {

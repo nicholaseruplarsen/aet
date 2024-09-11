@@ -17,7 +17,9 @@ const rangeTextMapping = {
   "1m": "Past Month",
   "3m": "Past 3 Months",
   "1y": "Past Year",
-}
+  "5y": "Past 5 Years",
+  "max": "All Time",
+};
 
 function calculatePriceChange(qouteClose: number, currentPrice: number) {
   const firstItemPrice = qouteClose || 0
