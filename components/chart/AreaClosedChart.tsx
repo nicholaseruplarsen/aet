@@ -1,29 +1,24 @@
-// @ts-nocheck
-"use client"
-import { memo, useCallback, useMemo, useReducer } from "react"
-import { scalePoint } from "d3-scale"
-import { bisectRight } from "d3-array"
-
-import { localPoint } from "@visx/event"
-import { LinearGradient } from "@visx/gradient"
-import { AreaClosed, LinePath } from "@visx/shape"
-import { scaleLinear } from "@visx/scale"
-import { ParentSize } from "@visx/responsive"
-import { Button } from "../ui/button"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { DEFAULT_RANGE } from "@/lib/yahoo-finance/constants"
-import { Range } from "@/lib/yahoo-finance/types"
+// components/chart/AreaClosedChart.tsx
+"use client";
+import { memo, useCallback, useMemo, useReducer } from "react";
+import { scalePoint } from "d3-scale";
+import { bisectRight } from "d3-array";
+import { localPoint } from "@visx/event";
+import { LinearGradient } from "@visx/gradient";
+import { AreaClosed, LinePath } from "@visx/shape";
+import { scaleLinear } from "@visx/scale";
+import { ParentSize } from "@visx/responsive";
 
 // UTILS
-const toDate = (d: any) => +new Date(d?.date || d)
+const toDate = (d: any) => +new Date(d?.date || d);
 
 const formatCurrency = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-}).format
+}).format;
 
-const MemoAreaClosed = memo(AreaClosed)
-const MemoLinePath = memo(LinePath)
+const MemoAreaClosed = memo(AreaClosed);
+const MemoLinePath = memo(LinePath);
 
 function reducer(state: any, action: any) {
   const initialState = {
@@ -31,7 +26,7 @@ function reducer(state: any, action: any) {
     date: state.date,
     translate: "0%",
     hovered: false,
-  }
+  };
 
   switch (action.type) {
     case "UPDATE": {
@@ -42,26 +37,27 @@ function reducer(state: any, action: any) {
         y: action.y,
         translate: `-${(1 - action.x / action.width) * 100}%`,
         hovered: true,
-      }
+      };
     }
     case "CLEAR": {
       return {
         ...initialState,
         x: undefined,
         y: undefined,
-      }
+      };
     }
     default:
-      return state
+      return state;
   }
 }
 
 interface InteractionsProps {
-  width: number
-  height: number
-  xScale: any
-  data: any[]
-  dispatch: any
+  width: number;
+  height: number;
+  xScale: any;
+  data: any[];
+  dispatch: any;
+  onDateHover: any;
 }
 
 function Interactions({
@@ -70,36 +66,34 @@ function Interactions({
   xScale,
   data,
   dispatch,
+  onDateHover,
 }: InteractionsProps) {
   const handleMove = useCallback(
     (event: React.PointerEvent<SVGRectElement>) => {
-      const point = localPoint(event)
-      if (!point) return
+      const point = localPoint(event);
+      if (!point) return;
 
       const pointer = {
         x: Math.max(0, Math.floor(point.x)),
         y: Math.max(0, Math.floor(point.y)),
+      };
+
+      const x0 = pointer.x;
+      const dates = data.map((d: any) => xScale(toDate(d)));
+      let index = bisectRight(dates, x0) - 1;
+      index = Math.max(0, Math.min(index, data.length - 1));
+
+      const d = data[index];
+      dispatch({ type: "UPDATE", ...d, ...pointer, width });
+
+      if (onDateHover) {
+        onDateHover(index);
       }
-
-      const x0 = pointer.x
-      const dates = data.map((d: any) => xScale(toDate(d)))
-      const index = bisectRight(dates, x0)
-
-      const d0 = data[index - 1]
-      const d1 = data[index]
-
-      let d = d0
-      if (d1 && toDate(d1)) {
-        const diff0 = x0.valueOf() - toDate(d0).valueOf()
-        const diff1 = toDate(d1).valueOf() - x0.valueOf()
-        d = diff0 > diff1 ? d1 : d0
-      }
-      dispatch({ type: "UPDATE", ...d, ...pointer, width })
     },
-    [xScale, data, dispatch, width]
-  )
+    [xScale, data, dispatch, width, onDateHover]
+  );
 
-  const handleLeave = useCallback(() => dispatch({ type: "CLEAR" }), [dispatch])
+  const handleLeave = useCallback(() => dispatch({ type: "CLEAR" }), [dispatch]);
 
   return (
     <rect
@@ -111,17 +105,17 @@ function Interactions({
       onPointerLeave={handleLeave}
       fill={"transparent"}
     />
-  )
+  );
 }
 
 interface AreaProps {
-  mask: string
-  id: string
-  data: any[]
-  x: any
-  y: any
-  yScale: any
-  color: string
+  mask: string;
+  id: string;
+  data: any[];
+  x: any;
+  y: any;
+  yScale: any;
+  color: string;
 }
 
 function Area({ mask, id, data, x, y, yScale, color }: AreaProps) {
@@ -145,14 +139,14 @@ function Area({ mask, id, data, x, y, yScale, color }: AreaProps) {
       />
       <MemoLinePath data={data} x={x} y={y} stroke={color} mask={mask} />
     </g>
-  )
+  );
 }
 
-function GraphSlider({ data, width, height, top, state, dispatch }: any) {
+function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }: any) {
   const xScale = useMemo(
     () => scalePoint().domain(data.map(toDate)).range([0, width]),
     [width, data]
-  )
+  );
 
   const yScale = useMemo(
     () =>
@@ -164,17 +158,17 @@ function GraphSlider({ data, width, height, top, state, dispatch }: any) {
         ],
       }),
     [height, data]
-  )
+  );
 
-  const x = useCallback((d: any) => xScale(toDate(d)), [xScale])
-  const y = useCallback((d: any) => yScale(d.close), [yScale])
+  const x = useCallback((d: any) => xScale(toDate(d)), [xScale]);
+  const y = useCallback((d: any) => yScale(d.close), [yScale]);
 
-  const pixelTranslate = (parseFloat(state.translate) / 100) * width
+  const pixelTranslate = (parseFloat(state.translate) / 100) * width;
   const style = {
     transform: `translateX(${pixelTranslate}px)`,
-  }
+  };
 
-  const isIncreasing = data[data.length - 1].close > data[0].close
+  const isIncreasing = data[data.length - 1].close > data[0].close;
 
   return (
     <svg height={height} width="100%" viewBox={`0 0 ${width} ${height}`}>
@@ -216,9 +210,7 @@ function GraphSlider({ data, width, height, top, state, dispatch }: any) {
             x2={state.x}
             y1={0}
             y2={680}
-            stroke={
-              state.hovered ? "dodgerblue" : isIncreasing ? "green" : "red"
-            }
+            stroke={state.hovered ? "dodgerblue" : isIncreasing ? "green" : "red"}
             strokeWidth={2}
           />
           <circle
@@ -247,34 +239,31 @@ function GraphSlider({ data, width, height, top, state, dispatch }: any) {
         data={data}
         xScale={xScale}
         dispatch={dispatch}
+        onDateHover={onDateHover}
       />
     </svg>
-  )
+  );
 }
 
-export default function AreaClosedChart({ chartQuotes, range }: any) {
-  const searchParams = useSearchParams()
-  const { replace } = useRouter()
-  const pathname = usePathname()
-
-  const last = chartQuotes[chartQuotes.length - 1]
+export default function AreaClosedChart({ data, onDateHover }: any) {
+  const last = data[data.length - 1];
 
   const initialState = {
     close: last.close,
     date: last.date,
     translate: "0%",
     hovered: false,
-  }
+  };
 
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   // TIME
-  const myDate = new Date(state.date)
+  const myDate = new Date(state.date);
   const formattedDate = myDate.toLocaleDateString(undefined, {
     day: "numeric",
     month: "short",
     year: "numeric",
-  })
+  });
 
   const formattedTime = myDate
     .toLocaleTimeString(undefined, {
@@ -282,38 +271,7 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
       minute: "2-digit",
       hour12: false,
     })
-    .replace(":", ".")
-
-  // RANGE
-  const createPageURL = useCallback(
-    (range: string) => {
-      const params = new URLSearchParams(searchParams)
-
-      if (range) {
-        params.set("range", range)
-      } else {
-        params.delete("range")
-      }
-      return `${pathname}?${params.toString().toLowerCase()}`
-    },
-    [searchParams, pathname]
-  )
-
-  const rangeOptions: Range[] = ["1d", "1w", "1m", "3m", "1y", "5y", "max"];
-
-  const isValidRange = (r: string): r is Range =>
-    rangeOptions.includes(r as Range)
-
-  if (!isValidRange(range)) {
-    replace(createPageURL(DEFAULT_RANGE))
-  }
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const range = e.currentTarget.textContent
-    if (range) {
-      replace(createPageURL(range))
-    }
-  }
+    .replace(":", ".");
 
   return (
     <div className="w-full min-w-fit">
@@ -325,20 +283,20 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
             : "invisible"
         }
       >
-        {formattedDate}{" "}
-        {range !== "3m" && range !== "1y" && "at " + formattedTime}
+        {formattedDate} {formattedTime && `at ${formattedTime}`}
       </div>
       <div className="h-80">
-        {chartQuotes.length > 0 ? (
+        {data.length > 0 ? (
           <ParentSize>
             {({ width, height }) => (
               <GraphSlider
-                data={chartQuotes}
+                data={data}
                 width={width}
                 height={height}
                 top={0}
                 state={state}
                 dispatch={dispatch}
+                onDateHover={onDateHover}
               />
             )}
           </ParentSize>
@@ -348,22 +306,6 @@ export default function AreaClosedChart({ chartQuotes, range }: any) {
           </div>
         )}
       </div>
-      <div className="mt-1 flex flex-row">
-      {rangeOptions.map((r) => (
-          <Button
-            key={r}
-            variant={"ghost"}
-            onClick={handleClick}
-            className={
-              range === r
-                ? "bg-accent font-bold text-accent-foreground"
-                : "text-muted-foreground"
-            }
-          >
-            {r === "max" ? "MAX" : r.toUpperCase()}
-          </Button>
-        ))}
-      </div>
     </div>
-  )
+  );
 }

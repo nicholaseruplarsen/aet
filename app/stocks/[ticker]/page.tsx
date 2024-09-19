@@ -1,7 +1,3 @@
-import StockChart from "@/components/chart/StockChart"
-import CompanySummaryCard from "@/app/stocks/[ticker]/components/CompanySummaryCard"
-import FinanceSummary from "@/app/stocks/[ticker]/components/FinanceSummary"
-import News from "@/app/stocks/[ticker]/components/News"
 import { Card, CardContent } from "@/components/ui/card"
 import { DEFAULT_INTERVAL, DEFAULT_RANGE } from "@/lib/yahoo-finance/constants"
 import {
@@ -43,56 +39,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function StocksPage({ params, searchParams }: Props) {
-  const ticker = params.ticker
-  const range = validateRange(searchParams?.range || DEFAULT_RANGE)
-  const interval = validateInterval(
-    range,
-    (searchParams?.interval as Interval) || DEFAULT_INTERVAL
-  )
+// Import necessary modules
+import fs from 'fs';
+import path from 'path';
+import { parse } from 'csv-parse/sync';
 
+export default async function StocksPage({ params, searchParams }: Props) {
+  const ticker = params.ticker;
+  // Read the CSV file
+  const csvFilePath = path.join(process.cwd(), 'data', `${ticker}_with_all.csv`);
+  const csvData = fs.readFileSync(csvFilePath, 'utf8');
+  const records = parse(csvData, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+  // Pass the data to a client component
   return (
     <div>
       <Card>
         <CardContent className="space-y-10 pt-6 lg:px-40 lg:py-14">
-          <Suspense
-            fallback={
-              <div className="flex h-[27.5rem] items-center justify-center text-muted-foreground ">
-                Loading...
-              </div>
-            }
-          >
-            <StockChart ticker={ticker} range={range} interval={interval} />
-          </Suspense>
-          <Suspense
-            fallback={
-              <div className="flex h-[10rem] items-center justify-center text-muted-foreground ">
-                Loading...
-              </div>
-            }
-          >
-            <FinanceSummary ticker={ticker} />
-          </Suspense>
-          <Suspense
-            fallback={
-              <div className="flex h-[10rem] items-center justify-center text-muted-foreground ">
-                Loading...
-              </div>
-            }
-          >
-            <CompanySummaryCard ticker={ticker} />
-          </Suspense>
-          <Suspense
-            fallback={
-              <div className="flex h-[20rem] items-center justify-center text-muted-foreground ">
-                Loading...
-              </div>
-            }
-          >
-            <News ticker={ticker} />
+          <Suspense fallback={<div>Loading...</div>}>
+            <StockPageContent data={records} />
           </Suspense>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
+
