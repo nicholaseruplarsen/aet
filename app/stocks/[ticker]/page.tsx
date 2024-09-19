@@ -43,6 +43,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // Import necessary modules
 import fs from 'fs';
 import path from 'path';
+
+export async function generateStaticParams() {
+  const dataDir = path.join(process.cwd(), 'data');
+  
+  // Read all files in the data directory
+  const files = fs.readdirSync(dataDir);
+  
+  // Extract ticker symbols from filenames
+  const tickers = files
+    .filter(file => file.endsWith('_with_all.csv'))
+    .map(file => file.replace('_with_all.csv', ''));
+  
+  // Return params in the required format
+  return tickers.map(ticker => ({ ticker }));
+}
+
 import { parse } from 'csv-parse/sync';
 
 export default async function StocksPage({ params, searchParams }: Props) {
