@@ -1,13 +1,17 @@
-// stocks/app/stocks/components/StockPageContent.tsx
 "use client";
 import { useState } from 'react';
 import MarketsChart from '@/components/chart/MarketsChart';
 import FinanceSummaryTable from '@/components/FinanceSummaryTable';
+import { StockData } from '@/types/yahoo-finance'; // Import the StockData type
 
-export default function StockPageContent({ data }) {
+interface StockPageContentProps {
+  data: StockData[];
+}
+
+export default function StockPageContent({ data }: StockPageContentProps) {
   const [selectedIndex, setSelectedIndex] = useState(data.length - 1);
 
-  const handleDateHover = (index) => {
+  const handleDateHover = (index: number) => {
     setSelectedIndex(index);
   };
 

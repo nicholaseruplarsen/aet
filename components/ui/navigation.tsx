@@ -15,7 +15,7 @@ import { usePathname } from "next/navigation"
 import CommandMenu from "./command-menu"
 
 const NAVIGATION = [
-  // { title: "Markets", href: "/" },
+  { title: "Markets", href: "/" },
   // { title: "Screener", href: "/screener" },
 ]
 

@@ -1,3 +1,5 @@
+// stocks/types/yahoo-finance.ts
+
 export type PredefinedScreenerModules =
   | "aggressive_small_caps"
   | "conservative_foreign_funds"
@@ -31,3 +33,23 @@ export type Interval =
   | "1wk"
   | "1mo"
   | "3mo";
+
+// stocks/types/yahoo-finance.ts
+
+export interface StockData {
+  Date: string;
+  Close: string; // Changed from number to string
+  // Define other fields explicitly with correct types
+  Market_Capitalization?: string;
+  Revenue?: string;
+  Gross_Profit?: string;
+  Gross_Margin?: string;
+  EBITDA?: string;
+  Net_Income?: string;
+  Profit_Margin?: string;
+  EPS_Diluted?: string;
+  Debt_Equity?: string;
+  Operating_Cash_Flow?: string;
+  Research_Development?: string;
+  // Remove the index signature if possible for better type safety
+}

@@ -10,7 +10,10 @@ import { scaleLinear } from "@visx/scale";
 import { ParentSize } from "@visx/responsive";
 
 // UTILS
-const toDate = (d: any) => +new Date(d?.date || d);
+const toDate = (d: any): string => {
+  const date = new Date(d?.date || d);
+  return date.toISOString(); // This returns a string representation of the date
+};
 
 const formatCurrency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -109,18 +112,19 @@ function Interactions({
 }
 
 interface AreaProps {
-  mask: string;
+  mask?: string;
   id: string;
   data: any[];
   x: any;
   y: any;
   yScale: any;
   color: string;
+  top: number;
 }
 
-function Area({ mask, id, data, x, y, yScale, color }: AreaProps) {
+function Area({ mask, id, data, x, y, yScale, color, top }: AreaProps) {
   return (
-    <g strokeLinecap="round" className="stroke-1">
+    <g strokeLinecap="round" className="stroke-1" transform={`translate(0, ${top})`}>
       <LinearGradient
         id={id}
         from={color}
@@ -144,7 +148,7 @@ function Area({ mask, id, data, x, y, yScale, color }: AreaProps) {
 
 function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }: any) {
   const xScale = useMemo(
-    () => scalePoint().domain(data.map(toDate)).range([0, width]),
+    () => scalePoint<string>().domain(data.map(toDate)).range([0, width]),
     [width, data]
   );
 
@@ -245,7 +249,17 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
   );
 }
 
-export default function AreaClosedChart({ data, onDateHover }: any) {
+interface ChartData {
+  date: Date;
+  close: number;
+}
+
+interface AreaClosedChartProps {
+  data: ChartData[];
+  onDateHover: (index: number) => void;
+}
+
+export default function AreaClosedChart({ data, onDateHover }: AreaClosedChartProps) {
   const last = data[data.length - 1];
 
   const initialState = {

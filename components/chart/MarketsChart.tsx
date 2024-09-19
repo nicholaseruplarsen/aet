@@ -1,8 +1,15 @@
-// stocks/components/chart/MarketsChart.tsx
 "use client";
 import AreaClosedChart from './AreaClosedChart';
+import { StockData } from '@/types/yahoo-finance'; // Import the StockData type
 
-export default function MarketsChart({ data, onDateHover }) {
+// Define an interface for the component's props
+interface MarketsChartProps {
+  data: StockData[];
+  onDateHover: (index: number) => void;
+}
+
+// Apply the props interface to the component
+export default function MarketsChart({ data, onDateHover }: MarketsChartProps) {
   const chartData = data.map((item) => ({
     date: new Date(item.Date),
     close: parseFloat(item.Close),

@@ -8,6 +8,7 @@ import { Interval } from "@/types/yahoo-finance"
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { fetchQuote } from "@/lib/yahoo-finance/fetchQuote"
+import StockPageContent from "@/app/stocks/components/StockPageContent"
 
 type Props = {
   params: {

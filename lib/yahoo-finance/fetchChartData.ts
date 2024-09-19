@@ -40,7 +40,7 @@ export async function fetchChartData(
         chartInterval = "1wk";
         break;
       case "5y":
-        chartInterval = "1mo";
+        chartInterval = "1mo"; // Correctly handled
         break;
       case "max":
         chartInterval = "1mo";
@@ -60,7 +60,7 @@ export async function fetchChartData(
     throw error;
   }
 }
-
+    
 function getStartDate(range: Range): Date {
   const now = new Date();
   switch (range) {
