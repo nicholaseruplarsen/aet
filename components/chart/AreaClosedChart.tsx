@@ -283,7 +283,8 @@ export default function AreaClosedChart({ data, onDateHover }: any) {
             : "invisible"
         }
       >
-        {formattedDate} {formattedTime && `at ${formattedTime}`}
+        {/* {formattedDate} {formattedTime && `at ${formattedTime}`} */}
+        {formattedDate}
       </div>
       <div className="h-80">
         {data.length > 0 ? (

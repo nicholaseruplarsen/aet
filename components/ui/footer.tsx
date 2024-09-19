@@ -10,7 +10,7 @@ export default function Footer() {
           Built by{" "}
           <Link
             prefetch={false}
-            href="https://twitter.com/DariusLukasukas"
+            href="https://github.com/nicholaseruplarsen"
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
