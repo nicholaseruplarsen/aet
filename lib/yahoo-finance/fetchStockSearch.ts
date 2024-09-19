@@ -1,9 +1,7 @@
-import { unstable_noStore as noStore } from "next/cache"
 import yahooFinance from "yahoo-finance2"
 import type { SearchResult } from "@/node_modules/yahoo-finance2/dist/esm/src/modules/search"
 
 export async function fetchStockSearch(ticker: string, newsCount: number = 5) {
-  noStore()
 
   const queryOptions = {
     quotesCount: 1,
