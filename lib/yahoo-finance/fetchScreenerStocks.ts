@@ -1,4 +1,3 @@
-import { unstable_noStore as noStore } from "next/cache"
 import type {
   ScreenerOptions,
   PredefinedScreenerModules,
@@ -9,7 +8,6 @@ import yahooFinance from "yahoo-finance2"
 const ITEMS_PER_PAGE = 40
 
 export async function fetchScreenerStocks(query: string, count?: number) {
-  noStore()
 
   // PAGINATION IS HANDLED BY TENSTACK TABLE
 
