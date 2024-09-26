@@ -14,9 +14,9 @@ const toDate = (d: any): string => {
   const date = new Date(d?.date || d);
   if (isNaN(date.getTime())) {
     console.error('Invalid date encountered:', d);
-    return new Date().toISOString().split('T')[0]; // Fallback to current date
+    return new Date().toISOString().split('T')[0];
   }
-  return date.toISOString().split('T')[0]; // Return 'YYYY-MM-DD'
+  return date.toISOString().split('T')[0];
 };
 
 

@@ -42,3 +42,14 @@ export default async function StocksPage({ params, searchParams }: Props) {
     </div>
   );
 }
+
+// Add the generateStaticParams function
+export async function generateStaticParams() {
+  const tickersPath = path.join(process.cwd(), 'public', 'data', 'tickers.json');
+  const tickersRaw = await fs.readFile(tickersPath, 'utf8');
+  const tickers: string[] = JSON.parse(tickersRaw);
+
+  return tickers.map((ticker) => ({
+    ticker,
+  }));
+}

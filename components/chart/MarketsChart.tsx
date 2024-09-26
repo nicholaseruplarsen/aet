@@ -11,8 +11,8 @@ interface MarketsChartProps {
 
 export default function MarketsChart({ data, onDateHover }: MarketsChartProps) {
   const chartData = data.map((item) => ({
-    date: new Date(item.date), // Changed from item.Date to item.date
-    close: item.close,         // Removed parseFloat since item.close is already a number
+    date: new Date(item.date),
+    close: item.close,
   }));
 
   return (
