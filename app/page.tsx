@@ -1,22 +1,30 @@
 // stocks/app/page.tsx
-import fs from 'fs';
-import path from 'path';
-import { parse } from 'csv-parse/sync';
+import { Card, CardContent } from "@/components/ui/card";
+import { Suspense } from "react";
 import StockPageContent from '@/app/stocks/components/StockPageContent';
+import path from 'path';
+import { promises as fs } from 'fs';
 
 export default async function Home() {
-  // Read the CSV file
-  const csvFilePath = path.join(process.cwd(), 'data', 'AAPL_with_all.csv');
-  const csvData = fs.readFileSync(csvFilePath, 'utf8');
-  const records = parse(csvData, {
-    columns: true,
-    skip_empty_lines: true,
-  });
+  // Fetch stock data
+  const stockDataPath = path.join(process.cwd(), 'public', 'data', 'stockData.json');
+  const stockDataRaw = await fs.readFile(stockDataPath, 'utf8');
+  const stockData = JSON.parse(stockDataRaw);
 
-  // Pass the data to the client component
+  // Fetch financial statements
+  const financialStatementsPath = path.join(process.cwd(), 'public', 'data', 'financialStatements.json');
+  const financialStatementsRaw = await fs.readFile(financialStatementsPath, 'utf8');
+  const financialStatements = JSON.parse(financialStatementsRaw);
+
   return (
     <div>
-      <StockPageContent data={records} />
+      <Card>
+        <CardContent className="space-y-10 pt-6 lg:px-40 lg:py-14">
+          <Suspense fallback={<div>Loading...</div>}>
+            <StockPageContent data={stockData} financialData={financialStatements} />
+          </Suspense>
+        </CardContent>
+      </Card>
     </div>
   );
 }

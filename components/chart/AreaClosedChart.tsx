@@ -12,8 +12,13 @@ import { ParentSize } from "@visx/responsive";
 // UTILS
 const toDate = (d: any): string => {
   const date = new Date(d?.date || d);
-  return date.toISOString(); // This returns a string representation of the date
+  if (isNaN(date.getTime())) {
+    console.error('Invalid date encountered:', d);
+    return new Date().toISOString().split('T')[0]; // Fallback to current date
+  }
+  return date.toISOString().split('T')[0]; // Return 'YYYY-MM-DD'
 };
+
 
 const formatCurrency = new Intl.NumberFormat("en-US", {
   style: "currency",

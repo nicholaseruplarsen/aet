@@ -23,6 +23,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^1.0.0",
     "csv": "^6.3.10",
+    "csvtojson": "^2.0.10",
     "date-fns": "^3.6.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.363.0",
@@ -36,7 +37,6 @@
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.0",
-    "yahoo-finance2": "^2.11.0",
     "zustand": "^4.5.2"
   },
   "devDependencies": {

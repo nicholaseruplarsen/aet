@@ -1,86 +1,44 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { DEFAULT_INTERVAL, DEFAULT_RANGE } from "@/lib/yahoo-finance/constants"
-import {
-  validateInterval,
-  validateRange,
-} from "@/lib/yahoo-finance/fetchChartData"
-import { Interval } from "@/types/yahoo-finance"
-import { Suspense } from "react"
-import type { Metadata } from "next"
-import { fetchQuote } from "@/lib/yahoo-finance/fetchQuote"
-import StockPageContent from "@/app/stocks/components/StockPageContent"
+// stocks/app/stocks/[ticker]/page.tsx
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Suspense } from "react";
+import StockPageContent from "@/app/stocks/components/StockPageContent";
+import path from 'path';
+import { promises as fs } from 'fs';
 
 type Props = {
   params: {
-    ticker: string
-  }
+    ticker: string;
+  };
   searchParams?: {
-    ticker?: string
-    range?: string
-    interval?: string
-  }
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const ticker = params.ticker
-
-  const quoteData = await fetchQuote(ticker)
-  const regularMarketPrice = quoteData.regularMarketPrice?.toLocaleString(
-    "en-US",
-    {
-      style: "currency",
-      currency: "USD",
-    }
-  )
-
-  return {
-    title: `${ticker} ${regularMarketPrice}`,
-    description: `Stocks page for ${ticker}`,
-    keywords: [ticker, "stocks"],
-  }
-}
-
-// Import necessary modules
-import fs from 'fs';
-import path from 'path';
-
-export async function generateStaticParams() {
-  const dataDir = path.join(process.cwd(), 'data');
-  
-  // Read all files in the data directory
-  const files = fs.readdirSync(dataDir);
-  
-  // Extract ticker symbols from filenames
-  const tickers = files
-    .filter(file => file.endsWith('_with_all.csv'))
-    .map(file => file.replace('_with_all.csv', ''));
-  
-  // Return params in the required format
-  return tickers.map(ticker => ({ ticker }));
-}
-
-import { parse } from 'csv-parse/sync';
+    ticker?: string;
+    range?: string;
+    interval?: string;
+  };
+};
 
 export default async function StocksPage({ params, searchParams }: Props) {
   const ticker = params.ticker;
-  // Read the CSV file
-  const csvFilePath = path.join(process.cwd(), 'data', `${ticker}_with_all.csv`);
-  const csvData = fs.readFileSync(csvFilePath, 'utf8');
-  const records = parse(csvData, {
-    columns: true,
-    skip_empty_lines: true,
-  });
-  // Pass the data to a client component
+
+  // Fetch stock data
+  const stockDataPath = path.join(process.cwd(), 'public', 'data', 'stockData.json');
+  const stockDataRaw = await fs.readFile(stockDataPath, 'utf8');
+  const stockData = JSON.parse(stockDataRaw);
+
+  // Fetch financial statements
+  const financialStatementsPath = path.join(process.cwd(), 'public', 'data', 'financialStatements.json');
+  const financialStatementsRaw = await fs.readFile(financialStatementsPath, 'utf8');
+  const financialStatements = JSON.parse(financialStatementsRaw);
+
   return (
     <div>
       <Card>
         <CardContent className="space-y-10 pt-6 lg:px-40 lg:py-14">
           <Suspense fallback={<div>Loading...</div>}>
-            <StockPageContent data={records} />
+            <StockPageContent data={stockData} financialData={financialStatements} />
           </Suspense>
         </CardContent>
       </Card>
     </div>
   );
 }
-
