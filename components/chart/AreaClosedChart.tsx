@@ -19,7 +19,6 @@ const toDate = (d: any): string => {
   return date.toISOString().split('T')[0];
 };
 
-
 const formatCurrency = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -29,16 +28,13 @@ const MemoAreaClosed = memo(AreaClosed);
 const MemoLinePath = memo(LinePath);
 
 function reducer(state: any, action: any) {
-  const initialState = {
-    close: state.close,
-    date: state.date,
-    translate: "0%",
-    hovered: false,
-  };
-
   switch (action.type) {
     case "UPDATE": {
+      if (state.isStatic) {
+        return state; // Do not update when static
+      }
       return {
+        ...state,
         close: action.close,
         date: action.date,
         x: action.x,
@@ -48,10 +44,22 @@ function reducer(state: any, action: any) {
       };
     }
     case "CLEAR": {
+      if (state.isStatic) {
+        return state; // Do not clear when static
+      }
       return {
-        ...initialState,
+        ...state,
         x: undefined,
         y: undefined,
+        hovered: false,
+      };
+    }
+    case "TOGGLE_STATIC": {
+      const isStatic = !state.isStatic;
+      return {
+        ...state,
+        isStatic,
+        hovered: isStatic ? true : false,
       };
     }
     default:
@@ -66,6 +74,7 @@ interface InteractionsProps {
   data: any[];
   dispatch: any;
   onDateHover: any;
+  state: any;
 }
 
 function Interactions({
@@ -75,9 +84,11 @@ function Interactions({
   data,
   dispatch,
   onDateHover,
+  state,
 }: InteractionsProps) {
   const handleMove = useCallback(
     (event: React.PointerEvent<SVGRectElement>) => {
+      if (state.isStatic) return; // Do not update hover when static
       const point = localPoint(event);
       if (!point) return;
 
@@ -98,10 +109,17 @@ function Interactions({
         onDateHover(index);
       }
     },
-    [xScale, data, dispatch, width, onDateHover]
+    [xScale, data, dispatch, width, onDateHover, state.isStatic]
   );
 
-  const handleLeave = useCallback(() => dispatch({ type: "CLEAR" }), [dispatch]);
+  const handleLeave = useCallback(() => {
+    if (state.isStatic) return; // Do not clear when static
+    dispatch({ type: "CLEAR" });
+  }, [dispatch, state.isStatic]);
+
+  const handleClick = useCallback(() => {
+    dispatch({ type: "TOGGLE_STATIC" });
+  }, [dispatch]);
 
   return (
     <rect
@@ -111,6 +129,7 @@ function Interactions({
       ry={12}
       onPointerMove={handleMove}
       onPointerLeave={handleLeave}
+      onClick={handleClick}
       fill={"transparent"}
     />
   );
@@ -178,6 +197,11 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
   };
 
   const isIncreasing = data[data.length - 1].close > data[0].close;
+  const color = (state.hovered || state.isStatic)
+    ? "dodgerblue"
+    : isIncreasing
+    ? "green"
+    : "red";
 
   return (
     <svg height={height} width="100%" viewBox={`0 0 ${width} ${height}`}>
@@ -200,7 +224,7 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
         y={y}
         top={top}
         yScale={yScale}
-        color={state.hovered ? "dodgerblue" : isIncreasing ? "green" : "red"}
+        color={color}
       />
       <Area
         id="top"
@@ -209,7 +233,7 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
         y={y}
         yScale={yScale}
         top={top}
-        color={state.hovered ? "dodgerblue" : isIncreasing ? "green" : "red"}
+        color={color}
         mask="url(#mask)"
       />
       {state.x && (
@@ -219,14 +243,14 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
             x2={state.x}
             y1={0}
             y2={680}
-            stroke={state.hovered ? "dodgerblue" : isIncreasing ? "green" : "red"}
+            stroke={color}
             strokeWidth={2}
           />
           <circle
             cx={state.x}
             cy={yScale(state.close)}
             r={8}
-            fill={state.hovered ? "dodgerblue" : isIncreasing ? "green" : "red"}
+            fill={color}
             stroke="#FFF"
             strokeWidth={3}
           />
@@ -235,7 +259,7 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
             x={state.x + 8 > width / 2 ? state.x - 8 : state.x + 6}
             y={0}
             dy={"0.75em"}
-            fill={state.hovered ? "dodgerblue" : isIncreasing ? "green" : "red"}
+            fill={color}
             className="text-base font-medium"
           >
             {formatCurrency(state.close)}
@@ -249,6 +273,7 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
         xScale={xScale}
         dispatch={dispatch}
         onDateHover={onDateHover}
+        state={state}
       />
     </svg>
   );
@@ -272,6 +297,7 @@ export default function AreaClosedChart({ data, onDateHover }: AreaClosedChartPr
     date: last.date,
     translate: "0%",
     hovered: false,
+    isStatic: false,
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -284,14 +310,6 @@ export default function AreaClosedChart({ data, onDateHover }: AreaClosedChartPr
     year: "numeric",
   });
 
-  const formattedTime = myDate
-    .toLocaleTimeString(undefined, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })
-    .replace(":", ".");
-
   return (
     <div className="w-full min-w-fit">
       <div
@@ -302,7 +320,6 @@ export default function AreaClosedChart({ data, onDateHover }: AreaClosedChartPr
             : "invisible"
         }
       >
-        {/* {formattedDate} {formattedTime && `at ${formattedTime}`} */}
         {formattedDate}
       </div>
       <div className="h-80">

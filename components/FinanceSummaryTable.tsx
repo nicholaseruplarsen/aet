@@ -29,11 +29,11 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ data }) => {
   ];
 
   const ratios: Metric[] = [
-    { key: 'PE Ratio', label: 'PE Ratio', format: 'ratio' },
-    { key: 'PS Ratio', label: 'PS Ratio', format: 'ratio' },
     { key: 'PB Ratio', label: 'PB Ratio', format: 'ratio' },
+    { key: 'PS Ratio', label: 'PS Ratio', format: 'ratio' },
     { key: 'P/FCF Ratio', label: 'P/FCF Ratio', format: 'ratio' },
     { key: 'P/OCF Ratio', label: 'P/OCF Ratio', format: 'ratio' },
+    { key: 'PE Ratio', label: 'PE Ratio', format: 'ratio' },
     { key: 'Quick Ratio', label: 'Quick Ratio', format: 'ratio' },
     { key: 'EPS (Diluted)', label: 'EPS (Diluted)', format: 'number' },
     { key: 'Debt/Equity', label: 'Debt/Equity', format: 'ratio' },
@@ -102,7 +102,7 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ data }) => {
     <div className="flex flex-col lg:flex-row lg:space-x-8">
       {/* Financial Metrics Section */}
       <div className="flex-1">
-        <h2 className="mb-4 text-lg font-semibold">Financial Metrics</h2>
+        <h2 className="mb-4 text-lg font-semibold">Financials</h2>
         <table className="w-full text-left border-collapse table-fixed">
           <colgroup>
             <col />
@@ -150,7 +150,7 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ data }) => {
 
       {/* Ratios Section */}
       <div className="flex-1 mt-8 lg:mt-0">
-        <h2 className="mb-4 text-lg font-semibold">Ratios</h2>
+        <h2 className="mb-4 text-lg font-semibold">&nbsp;</h2>
         <table className="w-full text-left border-collapse table-fixed">
           <colgroup>
             <col />

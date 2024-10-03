@@ -1,6 +1,6 @@
 // lib/yahoo-finance/constants.ts
 
-export const VALID_RANGES = ["1d", "1w", "1m", "3m", "1y", "5y", "max"] as const;
+export const VALID_RANGES = ["1d", "1w", "1m", "3m", "1y", "5y", "20y", "10y", "max"] as const;
 
 export type Range = typeof VALID_RANGES[number];
 
@@ -36,14 +36,16 @@ export type Interval =
   | "1mo"
   | "3mo";
 
-// Define INTERVALS_FOR_RANGE with all Range keys, including "5y"
+// Update in constants.ts or wherever INTERVALS_FOR_RANGE is defined
 export const INTERVALS_FOR_RANGE: Record<Range, readonly Interval[]> = {
   "1d": ["1m", "2m", "5m", "15m", "30m", "1h"],
   "1w": ["5m", "15m", "30m", "1h", "1d"],
   "1m": ["30m", "1h", "1d"],
   "3m": ["1h", "1d"],
   "1y": ["1d", "1wk"],
-  "5y": ["1mo"], // Added "5y" with "1mo" interval
+  "5y": ["1mo"],
+  "10y": ["1mo"],
+  "20y": ["1mo"],
   "max": ["1mo"],
 } as const;
 
