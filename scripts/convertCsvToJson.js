@@ -34,6 +34,29 @@ const financialFields = [
 // Define the corresponding 'Pct Change' fields
 const pctChangeFields = financialFields.map(field => `${field} Pct Change`);
 
+// List of ratio fields that need to be rounded
+const ratioFields = [
+  'Gross Margin',
+  'Profit Margin',
+  'Debt/Equity',
+  'PE Ratio',
+  'PS Ratio',
+  'PB Ratio',
+  'P/FCF Ratio',
+  'P/OCF Ratio',
+  'Quick Ratio',
+];
+
+// Function to round a number to two decimal places
+const roundToTwo = (num) => {
+  return Math.round(num * 100) / 100;
+};
+
+// Function to round a number to zero decimal places (integer)
+const roundToZero = (num) => {
+  return Math.round(num);
+};
+
 // Function to convert CSV to JSON
 const convertCsvToJson = async () => {
   try {
@@ -47,11 +70,14 @@ const convertCsvToJson = async () => {
       const date = row['Date'];
 
       // Extract 'Close' price
-      const closePrice = parseFloat(row['Close']);
-      if (isNaN(closePrice)) {
+      const closePriceRaw = parseFloat(row['Close']);
+      if (isNaN(closePriceRaw)) {
         console.warn(`Invalid Close price on ${date}. Skipping entry.`);
         return; // Skip this row if Close price is invalid
       }
+
+      // Round 'Close' to two decimals
+      const closePrice = roundToTwo(closePriceRaw);
 
       // Extract 'Shares Outstanding (Basic)'
       let sharesOutstanding = row['Shares Outstanding (Basic)'];
@@ -68,9 +94,12 @@ const convertCsvToJson = async () => {
       }
 
       // Calculate Market Capitalization
-      const marketCap = closePrice * sharesOutstanding;
+      const marketCapRaw = closePriceRaw * sharesOutstanding;
 
-      // Extract stock data with Market Capitalization
+      // Round 'Market Capitalization' to zero decimals
+      const marketCap = roundToZero(marketCapRaw);
+
+      // Extract stock data with rounded values
       stockData.push({
         date: date,
         close: closePrice,
@@ -88,8 +117,16 @@ const convertCsvToJson = async () => {
           value = value.replace(/[$,]/g, '');
 
           // Convert to float if possible
-          const numericValue = parseFloat(value);
-          financialData[field] = isNaN(numericValue) ? value : numericValue;
+          let numericValue = parseFloat(value);
+          if (!isNaN(numericValue)) {
+            // Check if the field is a ratio and round it
+            if (ratioFields.includes(field)) {
+              numericValue = roundToTwo(numericValue);
+            }
+            financialData[field] = numericValue;
+          } else {
+            financialData[field] = value;
+          }
         } else {
           financialData[field] = 'N/A';
         }
@@ -104,7 +141,7 @@ const convertCsvToJson = async () => {
           value = value.replace(/[%"]/g, '');
 
           // Convert to float if possible
-          const numericValue = parseFloat(value);
+          let numericValue = parseFloat(value);
 
           // Handle special cases like 'inf', '-inf', 'N/A'
           if (isNaN(numericValue)) {
@@ -116,6 +153,8 @@ const convertCsvToJson = async () => {
               financialData[pctField] = 'N/A';
             }
           } else {
+            // Round percentage changes to two decimals
+            numericValue = roundToTwo(numericValue);
             financialData[pctField] = numericValue;
           }
         } else {
@@ -126,11 +165,11 @@ const convertCsvToJson = async () => {
       financialStatements[date] = financialData;
     });
 
-    // Write stockData.json
+    // Write stockData.json with rounded values
     fs.writeFileSync(stockDataOutputPath, JSON.stringify(stockData, null, 2));
     console.log(`Successfully written ${stockData.length} entries to stockData.json`);
 
-    // Write financialStatements.json
+    // Write financialStatements.json with rounded values
     fs.writeFileSync(financialStatementsOutputPath, JSON.stringify(financialStatements, null, 2));
     console.log(`Successfully written financial statements to financialStatements.json`);
 
