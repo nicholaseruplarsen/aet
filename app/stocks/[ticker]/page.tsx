@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import StockPageContent from "@/app/stocks/components/StockPageContent";
 import path from 'path';
 import { promises as fs } from 'fs';
+import { getStockData, getFinancialStatements } from '@/lib/dataCache';
 
 type Props = {
   params: {
@@ -20,15 +21,8 @@ type Props = {
 export default async function StocksPage({ params, searchParams }: Props) {
   const ticker = params.ticker;
 
-  // Fetch stock data
-  const stockDataPath = path.join(process.cwd(), 'public', 'data', 'stockData.json');
-  const stockDataRaw = await fs.readFile(stockDataPath, 'utf8');
-  const stockData = JSON.parse(stockDataRaw);
-
-  // Fetch financial statements
-  const financialStatementsPath = path.join(process.cwd(), 'public', 'data', 'financialStatements.json');
-  const financialStatementsRaw = await fs.readFile(financialStatementsPath, 'utf8');
-  const financialStatements = JSON.parse(financialStatementsRaw);
+  const stockData = await getStockData();
+  const financialStatements = await getFinancialStatements();
 
   return (
     <div>

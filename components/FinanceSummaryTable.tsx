@@ -1,6 +1,6 @@
 // stocks/components/FinanceSummaryTable.tsx
 
-import React from 'react';
+import React, { memo } from 'react';
 import { cn } from '@/lib/utils'; // Ensure this import is correct
 import { FinancialData } from '@/types/'; // Import the FinancialData interface
 
@@ -15,7 +15,7 @@ interface Metric {
   format: 'currency' | 'percentage' | 'number' | 'ratio';
 }
 
-const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ data }) => {
+const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
   // Define the financial metrics and ratios separately with proper typing
   const financialMetrics: Metric[] = [
     { key: 'Market Capitalization', label: 'Market Cap', format: 'currency' },
@@ -197,6 +197,6 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ data }) => {
       </div>
     </div>
   );
-};
+});
 
 export default FinanceSummaryTable;
