@@ -210,6 +210,14 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
   const isIncreasing = data[data.length - 1].close > data[0].close;
   const color = state.hovered || state.isStatic ? "dodgerblue" : isIncreasing ? "green" : "red";
 
+  // Retrieve the formatted date from state
+  const myDate = new Date(state.date);
+  const formattedDate = myDate.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
     <svg height={height} width="100%" viewBox={`0 0 ${width} ${height}`}>
       <mask id="mask" className="w-full">
@@ -245,6 +253,7 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
       />
       {state.x && state.marketCap !== undefined && (
         <g className="marker">
+          {/* Vertical Line */}
           <line
             x1={state.x}
             x2={state.x}
@@ -253,6 +262,7 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
             stroke={color}
             strokeWidth={2}
           />
+          {/* Circle Marker */}
           <circle
             cx={state.x}
             cy={yScale(state.close)}
@@ -261,26 +271,37 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
             stroke="#FFF"
             strokeWidth={3}
           />
-          {/* Market Cap Text - Positioned Above Close Price */}
+          {/* Date Text Positioned from the Top */}
           <text
             textAnchor={state.x + 8 > width / 2 ? "end" : "start"}
             x={state.x + 8 > width / 2 ? state.x - 8 : state.x + 6}
-            y={0}
-            dy={"2.3em"} // Position above the close price
-            opacity={0.5}
+            y={20} // Fixed position from the top
+            dy={"-.6em"} // Adjust as needed
+            fill="white" // Keep the date text white
+            className="text-sm font-medium bg-black bg-opacity-50 px-1 rounded"
+          >
+            {formattedDate}
+          </text>
+          {/* Market Cap Text Positioned Below Close Price */}
+          <text
+            textAnchor={state.x + 8 > width / 2 ? "end" : "start"}
+            x={state.x + 8 > width / 2 ? state.x - 8 : state.x + 6}
+            y={20} // Align with date and close price texts' y
+            dy={"1em"} // Adjust as needed to position below the close price
             fill={color}
-            className="text-sm font-medium"
+            className="text-base font-medium"
           >
             {formatMarketCap(state.marketCap)}
           </text>
-          {/* Close Price Text - Positioned Below Market Cap */}
+          {/* Close Price Text Positioned Below Date */}
           <text
             textAnchor={state.x + 8 > width / 2 ? "end" : "start"}
             x={state.x + 8 > width / 2 ? state.x - 8 : state.x + 6}
-            y={0}
-            dy={"0.75em"} // Position as per original
+            y={20} // Align with date text's y
+            dy={"2.5em"} // Adjust as needed to position below the date
+            opacity={.8}
             fill={color}
-            className="text-base font-medium"
+            className="text-sm font-light"
           >
             {formatCurrency(state.close)}
           </text>
@@ -324,26 +345,9 @@ export default function AreaClosedChart({ data, onDateHover }: AreaClosedChartPr
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // TIME
-  const myDate = new Date(state.date);
-  const formattedDate = myDate.toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-
   return (
     <div className="w-full min-w-fit">
-      <div
-        suppressHydrationWarning
-        className={
-          state.hovered
-            ? "flex items-center justify-center font-medium"
-            : "invisible"
-        }
-      >
-        {formattedDate}
-      </div>
+      {/* Removed the separate date div */}
       <div className="h-80">
         {data.length > 0 ? (
           <ParentSize>
