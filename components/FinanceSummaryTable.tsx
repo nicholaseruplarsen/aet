@@ -102,7 +102,7 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ data }) => {
     <div className="flex flex-col lg:flex-row lg:space-x-8">
       {/* Financial Metrics Section */}
       <div className="flex-1">
-        <h2 className="mb-4 text-lg font-semibold">Financials</h2>
+        <h2 className="mb-4 text-lg font-semibold">Financials (quarterly)</h2>
         <table className="w-full text-left border-collapse table-fixed">
           <colgroup>
             <col />

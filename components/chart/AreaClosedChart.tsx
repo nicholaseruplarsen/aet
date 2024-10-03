@@ -1,4 +1,5 @@
-// components/chart/AreaClosedChart.tsx
+// stocks/components/chart/AreaClosedChart.tsx
+
 "use client";
 import { memo, useCallback, useMemo, useReducer } from "react";
 import { scalePoint } from "d3-scale";
@@ -13,16 +14,29 @@ import { ParentSize } from "@visx/responsive";
 const toDate = (d: any): string => {
   const date = new Date(d?.date || d);
   if (isNaN(date.getTime())) {
-    console.error('Invalid date encountered:', d);
-    return new Date().toISOString().split('T')[0];
+    console.error("Invalid date encountered:", d);
+    return new Date().toISOString().split("T")[0];
   }
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 };
 
 const formatCurrency = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 }).format;
+
+// Updated utility function to format Market Cap with T, B, M and include '$'
+const formatMarketCap = (value: number): string => {
+  if (Math.abs(value) >= 1e12) {
+    return `$${(value / 1e12).toFixed(2)} T`;
+  } else if (Math.abs(value) >= 1e9) {
+    return `$${(value / 1e9).toFixed(2)} B`;
+  } else if (Math.abs(value) >= 1e6) {
+    return `$${(value / 1e6).toFixed(2)} M`;
+  } else {
+    return `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  }
+};
 
 const MemoAreaClosed = memo(AreaClosed);
 const MemoLinePath = memo(LinePath);
@@ -36,6 +50,7 @@ function reducer(state: any, action: any) {
       return {
         ...state,
         close: action.close,
+        marketCap: action.marketCap, // Add marketCap to state
         date: action.date,
         x: action.x,
         y: action.y,
@@ -51,6 +66,8 @@ function reducer(state: any, action: any) {
         ...state,
         x: undefined,
         y: undefined,
+        close: undefined, // Clear close
+        marketCap: undefined, // Clear marketCap
         hovered: false,
       };
     }
@@ -149,13 +166,7 @@ interface AreaProps {
 function Area({ mask, id, data, x, y, yScale, color, top }: AreaProps) {
   return (
     <g strokeLinecap="round" className="stroke-1" transform={`translate(0, ${top})`}>
-      <LinearGradient
-        id={id}
-        from={color}
-        fromOpacity={0.6}
-        to={color}
-        toOpacity={0}
-      />
+      <LinearGradient id={id} from={color} fromOpacity={0.6} to={color} toOpacity={0} />
       <MemoAreaClosed
         data={data}
         x={x}
@@ -197,11 +208,7 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
   };
 
   const isIncreasing = data[data.length - 1].close > data[0].close;
-  const color = (state.hovered || state.isStatic)
-    ? "dodgerblue"
-    : isIncreasing
-    ? "green"
-    : "red";
+  const color = state.hovered || state.isStatic ? "dodgerblue" : isIncreasing ? "green" : "red";
 
   return (
     <svg height={height} width="100%" viewBox={`0 0 ${width} ${height}`}>
@@ -236,13 +243,13 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
         color={color}
         mask="url(#mask)"
       />
-      {state.x && (
+      {state.x && state.marketCap !== undefined && (
         <g className="marker">
           <line
             x1={state.x}
             x2={state.x}
             y1={0}
-            y2={680}
+            y2={height}
             stroke={color}
             strokeWidth={2}
           />
@@ -254,11 +261,24 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
             stroke="#FFF"
             strokeWidth={3}
           />
+          {/* Market Cap Text - Positioned Above Close Price */}
           <text
             textAnchor={state.x + 8 > width / 2 ? "end" : "start"}
             x={state.x + 8 > width / 2 ? state.x - 8 : state.x + 6}
             y={0}
-            dy={"0.75em"}
+            dy={"2.3em"} // Position above the close price
+            opacity={0.5}
+            fill={color}
+            className="text-sm font-medium"
+          >
+            {formatMarketCap(state.marketCap)}
+          </text>
+          {/* Close Price Text - Positioned Below Market Cap */}
+          <text
+            textAnchor={state.x + 8 > width / 2 ? "end" : "start"}
+            x={state.x + 8 > width / 2 ? state.x - 8 : state.x + 6}
+            y={0}
+            dy={"0.75em"} // Position as per original
             fill={color}
             className="text-base font-medium"
           >
@@ -282,6 +302,7 @@ function GraphSlider({ data, width, height, top, state, dispatch, onDateHover }:
 interface ChartData {
   date: Date;
   close: number;
+  marketCap: number; // Include marketCap in ChartData
 }
 
 interface AreaClosedChartProps {
@@ -294,6 +315,7 @@ export default function AreaClosedChart({ data, onDateHover }: AreaClosedChartPr
 
   const initialState = {
     close: last.close,
+    marketCap: last.marketCap, // Initialize marketCap
     date: last.date,
     translate: "0%",
     hovered: false,

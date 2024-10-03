@@ -13,6 +13,7 @@ export default function MarketsChart({ data, onDateHover }: MarketsChartProps) {
   const chartData = data.map((item) => ({
     date: new Date(item.date),
     close: item.close,
+    marketCap: item.marketCap, // Include marketCap
   }));
 
   return (

@@ -3,6 +3,7 @@
 export interface StockData {
   date: string;
   close: number;
+  marketCap: number; // Added Market Capitalization
 }
 
 export interface FinancialData {

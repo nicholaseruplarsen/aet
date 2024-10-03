@@ -11,6 +11,7 @@ const csvFilePath = path.join(__dirname, '../data/AAPL_with_all.csv');
 const stockDataOutputPath = path.join(__dirname, '../public/data/stockData.json');
 const financialStatementsOutputPath = path.join(__dirname, '../public/data/financialStatements.json');
 
+// Define the financial fields to extract
 const financialFields = [
   'Market Capitalization',
   'Revenue',
@@ -45,10 +46,35 @@ const convertCsvToJson = async () => {
     jsonArray.forEach((row) => {
       const date = row['Date'];
 
-      // Extract stock data
+      // Extract 'Close' price
+      const closePrice = parseFloat(row['Close']);
+      if (isNaN(closePrice)) {
+        console.warn(`Invalid Close price on ${date}. Skipping entry.`);
+        return; // Skip this row if Close price is invalid
+      }
+
+      // Extract 'Shares Outstanding (Basic)'
+      let sharesOutstanding = row['Shares Outstanding (Basic)'];
+      if (!sharesOutstanding || sharesOutstanding === 'N/A') {
+        console.warn(`Missing Shares Outstanding on ${date}. Setting to 0.`);
+        sharesOutstanding = 0;
+      } else {
+        // Remove any commas and convert to float
+        sharesOutstanding = parseFloat(sharesOutstanding.replace(/,/g, ''));
+        if (isNaN(sharesOutstanding)) {
+          console.warn(`Invalid Shares Outstanding on ${date}. Setting to 0.`);
+          sharesOutstanding = 0;
+        }
+      }
+
+      // Calculate Market Capitalization
+      const marketCap = closePrice * sharesOutstanding;
+
+      // Extract stock data with Market Capitalization
       stockData.push({
         date: date,
-        close: parseFloat(row['Close']),
+        close: closePrice,
+        marketCap: marketCap,
       });
 
       // Extract financial statements
@@ -57,9 +83,9 @@ const convertCsvToJson = async () => {
         let value = row[field];
 
         // Handle numerical values and percentages
-        if (value) {
-          // Remove any non-numeric characters (like $)
-          value = value.replace(/[$]/g, '');
+        if (value && value !== 'N/A') {
+          // Remove any non-numeric characters (like $ and commas)
+          value = value.replace(/[$,]/g, '');
 
           // Convert to float if possible
           const numericValue = parseFloat(value);
@@ -73,7 +99,7 @@ const convertCsvToJson = async () => {
       pctChangeFields.forEach((pctField) => {
         let value = row[pctField];
 
-        if (value) {
+        if (value && value !== 'N/A') {
           // Remove percentage sign and handle potential quotes
           value = value.replace(/[%"]/g, '');
 
@@ -86,8 +112,6 @@ const convertCsvToJson = async () => {
               financialData[pctField] = Infinity;
             } else if (value.toLowerCase() === '-inf') {
               financialData[pctField] = -Infinity;
-            } else if (value.toLowerCase() === 'n/a') {
-              financialData[pctField] = 'N/A';
             } else {
               financialData[pctField] = 'N/A';
             }
