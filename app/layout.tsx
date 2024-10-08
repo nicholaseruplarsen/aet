@@ -1,3 +1,5 @@
+// stocks/app/layout.tsx
+
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
@@ -5,6 +7,7 @@ import { ViewTransitions } from "next-view-transitions"
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import Navigation from "@/components/ui/navigation"
 import Footer from "@/components/ui/footer"
+import { TooltipProvider } from "@/components/ui/tooltip" // Import TooltipProvider
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -31,9 +34,11 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Navigation />
-            <main className="container">{children}</main>
-            <Footer />
+            <TooltipProvider delayDuration={0}>
+              <Navigation />
+              <main className="container">{children}</main>
+              <Footer />
+            </TooltipProvider>
           </ThemeProvider>
         </body>
       </html>

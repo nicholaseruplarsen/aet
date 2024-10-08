@@ -3,6 +3,8 @@
 import React, { memo } from 'react';
 import { cn } from '@/lib/utils'; // Ensure this import is correct
 import { FinancialData } from '@/types/'; // Import the FinancialData interface
+import { formatCurrency, formatPercentage, formatPercentageChange } from '@/lib/formatters';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'; // Import Tooltip components
 
 interface FinanceSummaryTableProps {
   data: FinancialData;
@@ -13,30 +15,110 @@ interface Metric {
   key: keyof FinancialData;
   label: string;
   format: 'currency' | 'percentage' | 'number' | 'ratio';
+  tooltip: string; // New property for tooltip text
 }
 
 const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
-  // Define the financial metrics and ratios separately with proper typing
   const financialMetrics: Metric[] = [
-    { key: 'Market Capitalization', label: 'Market Cap', format: 'currency' },
-    { key: 'Revenue', label: 'Revenue', format: 'currency' },
-    { key: 'Gross Profit', label: 'Gross Income', format: 'currency' },
-    { key: 'Gross Margin', label: 'Gross Margin', format: 'percentage' },
-    { key: 'Net Income', label: 'Net Income', format: 'currency' },
-    { key: 'Profit Margin', label: 'Profit Margin', format: 'percentage' },
-    { key: 'Operating Cash Flow', label: 'Operating Cash Flow', format: 'currency' },
-    { key: 'Research & Development', label: 'Research & Development', format: 'currency' },
+    {
+      key: 'Market Capitalization',
+      label: 'Market Cap',
+      format: 'currency',
+      tooltip: 'Market Cap: Outstanding Shares × Current Share Price',
+    },
+    {
+      key: 'Revenue',
+      label: 'Revenue',
+      format: 'currency',
+      tooltip: 'Total income generated from sales before any expenses',
+    },
+    {
+      key: 'Gross Profit',
+      label: 'Gross Income',
+      format: 'currency',
+      tooltip: 'Gross Profit: Revenue - Cost of Goods Sold',
+    },
+    {
+      key: 'Gross Margin',
+      label: 'Gross Margin',
+      format: 'percentage',
+      tooltip: 'Gross Margin: (Gross Profit / Revenue) × 100',
+    },
+    {
+      key: 'Net Income',
+      label: 'Net Income',
+      format: 'currency',
+      tooltip: 'Net Income: Revenue - All Expenses',
+    },
+    {
+      key: 'Profit Margin',
+      label: 'Profit Margin',
+      format: 'percentage',
+      tooltip: 'Profit Margin: (Net Income / Revenue) × 100',
+    },
+    {
+      key: 'Operating Cash Flow',
+      label: 'Operating Cash Flow',
+      format: 'currency',
+      tooltip: 'Cash generated from regular business operations',
+    },
+    {
+      key: 'Research & Development',
+      label: 'Research & Development',
+      format: 'currency',
+      tooltip: 'Expenses related to developing new products or services',
+    },
   ];
 
   const ratios: Metric[] = [
-    { key: 'PB Ratio', label: 'PB Ratio', format: 'ratio' },
-    { key: 'PS Ratio', label: 'PS Ratio', format: 'ratio' },
-    { key: 'P/FCF Ratio', label: 'P/FCF Ratio', format: 'ratio' },
-    { key: 'P/OCF Ratio', label: 'P/OCF Ratio', format: 'ratio' },
-    { key: 'PE Ratio', label: 'PE Ratio', format: 'ratio' },
-    { key: 'Quick Ratio', label: 'Quick Ratio', format: 'ratio' },
-    { key: 'EPS (Diluted)', label: 'EPS (Diluted)', format: 'number' },
-    { key: 'Debt/Equity', label: 'Debt/Equity', format: 'ratio' },
+    {
+      key: 'PB Ratio',
+      label: 'PB Ratio',
+      format: 'ratio',
+      tooltip: 'Price-to-Book ratio: Market Cap / Shareholders Equity',
+    },
+    {
+      key: 'PS Ratio',
+      label: 'PS Ratio',
+      format: 'ratio',
+      tooltip: 'Price-to-Sales ratio: Market Cap / Revenue',
+    },
+    {
+      key: 'P/FCF Ratio',
+      label: 'P/FCF Ratio',
+      format: 'ratio',
+      tooltip: 'Price-to-Free Cash Flow ratio: Market Cap / Free Cash Flow',
+    },
+    {
+      key: 'P/OCF Ratio',
+      label: 'P/OCF Ratio',
+      format: 'ratio',
+      tooltip: 'Price-to-Operating Cash Flow ratio: Market Cap / Operating Cash Flow',
+    },
+    {
+      key: 'PE Ratio',
+      label: 'PE Ratio',
+      format: 'ratio',
+      tooltip: 'Price-to-Earnings ratio: Market Cap / Net Income',
+    },
+    {
+      key: 'Quick Ratio',
+      label: 'Quick Ratio',
+      format: 'ratio',
+      tooltip: 'Quick Ratio: (Total Current Assets - Inventory) / Total Current Liabilities',
+    },
+    {
+      key: 'EPS (Diluted)',
+      label: 'EPS (Diluted)',
+      format: 'number',
+      tooltip: 'Earnings Per Share (Diluted): (Net Income - Preferred Dividends) / Weighted Average Diluted Shares Outstanding',
+    },
+    {
+      key: 'Debt/Equity',
+      label: 'Debt/Equity',
+      format: 'ratio',
+      tooltip: 'Debt-to-Equity ratio: Total Debt / Shareholders Equity',
+    },
   ];
 
   // Define formatting functions
@@ -123,7 +205,18 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
 
               return (
                 <tr key={field.key} className="border-b">
-                  <td className="py-2 font-medium">{field.label}</td>
+                  <td className="py-2 font-medium">
+                    {/* Wrap the label with Tooltip */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        {/* Updated to use cursor-default */}
+                        <span className="cursor-default">{field.label}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {field.tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  </td>
                   <td className="py-2 text-left">{formattedValue}</td>
                   <td className="py-2 text-left">
                     <div
@@ -150,7 +243,7 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
 
       {/* Ratios Section */}
       <div className="flex-1 mt-8 lg:mt-0">
-        <h2 className="mb-4 text-lg font-semibold">&nbsp;</h2>
+        <h2 className="mb-4 text-lg font-semibold">Ratios</h2>
         <table className="w-full text-left border-collapse table-fixed">
           <colgroup>
             <col />
@@ -171,7 +264,17 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
 
               return (
                 <tr key={field.key} className="border-b">
-                  <td className="py-2 font-medium">{field.label}</td>
+                  <td className="py-2 font-medium">
+                    {/* Wrap the label with Tooltip */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-default">{field.label}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {field.tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  </td>
                   <td className="py-2 text-left">{formattedValue}</td>
                   <td className="py-2 text-left">
                     <div

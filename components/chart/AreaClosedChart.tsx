@@ -2,6 +2,7 @@
 
 "use client";
 import { memo, useCallback, useMemo, useReducer } from "react";
+import { formatCurrency, formatMarketCap } from '@/lib/formatters';
 import { scalePoint } from "d3-scale";
 import { bisectRight } from "d3-array";
 import { localPoint } from "@visx/event";
@@ -18,24 +19,6 @@ const toDate = (d: any): string => {
     return new Date().toISOString().split("T")[0];
   }
   return date.toISOString().split("T")[0];
-};
-
-const formatCurrency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-}).format;
-
-// Updated utility function to format Market Cap with T, B, M and include '$'
-const formatMarketCap = (value: number): string => {
-  if (Math.abs(value) >= 1e12) {
-    return `$${(value / 1e12).toFixed(2)} T`;
-  } else if (Math.abs(value) >= 1e9) {
-    return `$${(value / 1e9).toFixed(2)} B`;
-  } else if (Math.abs(value) >= 1e6) {
-    return `$${(value / 1e6).toFixed(2)} M`;
-  } else {
-    return `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
-  }
 };
 
 const MemoAreaClosed = memo(AreaClosed);
