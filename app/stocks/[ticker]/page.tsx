@@ -36,7 +36,7 @@ export default async function StocksPage({ params }: Props) {
   return (
     <div className="lg:px-20">
       <Card>
-        <CardContent className="lg:px-14 lg:py-14">
+        <CardContent className="lg:px-10 lg:py-7">
           <Suspense fallback={<div>Loading...</div>}>
             <StockPageContent
               data={stockData}

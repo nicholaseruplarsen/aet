@@ -49,11 +49,14 @@ export default function StockPageContent({
     setSelectedIndex(filteredData.length > 0 ? filteredData.length - 1 : null);
   }, [filteredData]);
 
-  const handleDateHover = (index: number) => {
-    if (index >= 0 && index < filteredData.length) {
+  const handleDateHover = (index: number | null) => { // Updated to accept number | null
+    if (index !== null && index >= 0 && index < filteredData.length) {
       setSelectedIndex(index);
+    } else {
+      setSelectedIndex(null);
     }
   };
+
 
   // If there's no data available for the selected range
   if (filteredData.length === 0 || selectedIndex === null) {
@@ -107,7 +110,7 @@ export default function StockPageContent({
     <div className="space-y-6">
       <MarketsChart
         data={filteredData}
-        onDateHover={handleDateHover}
+        onDateHover={handleDateHover} // Now compatible
         ticker={ticker}
         companyName={companyName}
       />

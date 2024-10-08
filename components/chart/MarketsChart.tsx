@@ -6,7 +6,7 @@ import { StockData } from '@/types/';
 
 interface MarketsChartProps {
   data: StockData[];
-  onDateHover: (index: number) => void;
+  onDateHover: (index: number | null) => void; // Changed from number to number | null
   ticker: string;
   companyName: string;
 }

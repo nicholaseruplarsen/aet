@@ -39,22 +39,10 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
       tooltip: 'Gross Profit: Revenue - Cost of Goods Sold',
     },
     {
-      key: 'Gross Margin',
-      label: 'Gross Margin',
-      format: 'percentage',
-      tooltip: 'Gross Margin: (Gross Profit / Revenue) × 100',
-    },
-    {
       key: 'Net Income',
       label: 'Net Income',
       format: 'currency',
       tooltip: 'Net Income: Revenue - All Expenses',
-    },
-    {
-      key: 'Profit Margin',
-      label: 'Profit Margin',
-      format: 'percentage',
-      tooltip: 'Profit Margin: (Net Income / Revenue) × 100',
     },
     {
       key: 'Operating Cash Flow',
@@ -82,18 +70,6 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
       label: 'PS Ratio',
       format: 'ratio',
       tooltip: 'Price-to-Sales ratio: Market Cap / Revenue',
-    },
-    {
-      key: 'P/FCF Ratio',
-      label: 'P/FCF Ratio',
-      format: 'ratio',
-      tooltip: 'Price-to-Free Cash Flow ratio: Market Cap / Free Cash Flow',
-    },
-    {
-      key: 'P/OCF Ratio',
-      label: 'P/OCF Ratio',
-      format: 'ratio',
-      tooltip: 'Price-to-Operating Cash Flow ratio: Market Cap / Operating Cash Flow',
     },
     {
       key: 'PE Ratio',
@@ -159,7 +135,7 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
       case 'number':
         return numValue.toFixed(2);
       case 'ratio':
-        return numValue.toFixed(2);
+        return numValue.toFixed(2) + 'x'; // Appended 'x' for ratios
       default:
         return numValue.toString();
     }
@@ -209,8 +185,21 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
                     {/* Wrap the label with Tooltip */}
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        {/* Updated to use cursor-default */}
-                        <span className="cursor-default">{field.label}</span>
+                        {/* Change to flex container for alignment */}
+                        <span className="cursor-default flex justify-between items-center">
+                          <span>{field.label}</span>
+                          {/* Conditionally render the margin spans with added padding-right */}
+                          {field.key === 'Gross Profit' && data['Gross Margin'] !== undefined && (
+                            <span className="ml-2 text-sm text-gray-500 text-right pr-2">
+                              ({formatValue(data['Gross Margin'], 'percentage')})
+                            </span>
+                          )}
+                          {field.key === 'Net Income' && data['Profit Margin'] !== undefined && (
+                            <span className="ml-2 text-sm text-gray-500 text-right pr-2">
+                              ({formatValue(data['Profit Margin'], 'percentage')})
+                            </span>
+                          )}
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent>
                         {field.tooltip}
@@ -268,7 +257,9 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
                     {/* Wrap the label with Tooltip */}
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="cursor-default">{field.label}</span>
+                        <span className="cursor-default">
+                          {field.label}
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent>
                         {field.tooltip}

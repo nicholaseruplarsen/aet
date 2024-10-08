@@ -23,8 +23,6 @@ export interface FinancialData {
   'PE Ratio'?: number | string;
   'PS Ratio'?: number | string;
   'PB Ratio'?: number | string;
-  'P/FCF Ratio'?: number | string;
-  'P/OCF Ratio'?: number | string;
   'Quick Ratio'?: number | string;
 
   // Corresponding 'Pct Change' fields
@@ -43,8 +41,6 @@ export interface FinancialData {
   'PE Ratio Pct Change'?: number | string;
   'PS Ratio Pct Change'?: number | string;
   'PB Ratio Pct Change'?: number | string;
-  'P/FCF Ratio Pct Change'?: number | string;
-  'P/OCF Ratio Pct Change'?: number | string;
   'Quick Ratio Pct Change'?: number | string;
 }
 

@@ -25,7 +25,7 @@ export default function Navigation() {
   return (
     <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container">
-        <div className="flex w-full flex-row justify-between py-4">
+        <div className="flex w-full flex-row justify-between py-2">
           <div/>
           <div className="flex flex-row items-center gap-2">
             <NavigationMenu>

@@ -7,7 +7,7 @@
   {
     "id": 2,
     "ticker": "MSFT",
-    "title": "MICROSOFT CORP"
+    "title": "Microsoft Corporation"
   },
   {
     "id": 3,
@@ -17,11 +17,16 @@
   {
     "id": 4,
     "ticker": "AMZN",
-    "title": "AMAZON COM INC"
+    "title": "Amazon.com, Inc."
   },
   {
     "id": 5,
     "ticker": "NVDA",
-    "title": "NVIDIA CORP"
+    "title": "NVIDIA Corporation"
+  },
+  {
+    "id": 6,
+    "ticker": "TSLA",
+    "title": "Tesla, Inc."
   }
 ]

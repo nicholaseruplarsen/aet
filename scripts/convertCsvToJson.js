@@ -49,6 +49,11 @@ const roundToTwo = (num) => {
   return Math.round(num * 100) / 100;
 };
 
+// Function to round a number to four decimal places
+const roundToFour = (num) => {
+  return Math.round(num * 10000) / 10000;
+};
+
 // Function to round a number to zero decimal places (integer)
 const roundToZero = (num) => {
   return Math.round(num);
@@ -116,9 +121,13 @@ const processTickerCsv = async (ticker, csvFilePath, outputDir) => {
           // Convert to float if possible
           let numericValue = parseFloat(value);
           if (!isNaN(numericValue)) {
-            // Check if the field is a ratio and round it
+            // Check if the field is a ratio and round it appropriately
             if (ratioFields.includes(field)) {
-              numericValue = roundToTwo(numericValue);
+              if (field === 'Gross Margin' || field === 'Profit Margin') {
+                numericValue = roundToFour(numericValue);
+              } else {
+                numericValue = roundToTwo(numericValue);
+              }
             }
             financialData[field] = numericValue;
           } else {

@@ -14,12 +14,10 @@ export const columns: ColumnDef<any>[] = [
   { accessorKey: 'Operating Cash Flow', header: 'Operating Cash Flow' },
   { accessorKey: 'Research & Development', header: 'Research & Development' },
 
-  // New Columns
+  // New Columns (Removed 'P/FCF Ratio' and 'P/OCF Ratio')
   { accessorKey: 'PE Ratio', header: 'PE Ratio' },
   { accessorKey: 'PS Ratio', header: 'PS Ratio' },
   { accessorKey: 'PB Ratio', header: 'PB Ratio' },
-  { accessorKey: 'P/FCF Ratio', header: 'P/FCF Ratio' },
-  { accessorKey: 'P/OCF Ratio', header: 'P/OCF Ratio' },
   { accessorKey: 'Quick Ratio', header: 'Quick Ratio' },
 
   // Moved Columns
