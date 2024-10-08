@@ -10,13 +10,20 @@ import { Button } from '@/components/ui/button';
 interface StockPageContentProps {
   data: StockData[];
   financialData: Record<string, any>;
+  ticker: string;
+  companyName: string;
 }
 
-export default function StockPageContent({ data, financialData }: StockPageContentProps) {
+export default function StockPageContent({
+  data,
+  financialData,
+  ticker,
+  companyName,
+}: StockPageContentProps) {
   const [selectedRange, setSelectedRange] = useState<string>('MAX');
 
-  // Function to filter data based on selectedRange
-  const getFilteredData = () => {
+  // Memoize filteredData to prevent unnecessary re-renders
+  const filteredData = useMemo(() => {
     if (selectedRange.toUpperCase() === 'MAX') {
       return data;
     }
@@ -30,10 +37,7 @@ export default function StockPageContent({ data, financialData }: StockPageConte
     cutoffDate.setFullYear(cutoffDate.getFullYear() - yearsAgo);
 
     return data.filter(item => new Date(item.date) >= cutoffDate);
-  };
-
-  // Memoize filteredData to prevent unnecessary re-renders
-  const filteredData = useMemo(() => getFilteredData(), [selectedRange, data]);
+  }, [selectedRange, data]);
 
   // Initialize selectedIndex based on filteredData
   const [selectedIndex, setSelectedIndex] = useState<number | null>(() => 
@@ -101,7 +105,12 @@ export default function StockPageContent({ data, financialData }: StockPageConte
 
   return (
     <div className="space-y-6">
-      <MarketsChart data={filteredData} onDateHover={handleDateHover} />
+      <MarketsChart
+        data={filteredData}
+        onDateHover={handleDateHover}
+        ticker={ticker}
+        companyName={companyName}
+      />
 
       {/* Buttons for selecting range */}
       <div className="flex space-x-2 justify-center">

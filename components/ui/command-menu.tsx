@@ -17,9 +17,9 @@ import tickers from "@/data/tickers.json"
 import { useRouter } from "next/navigation"
 
 const SUGGESTIONS = [
+  { ticker: "AAPL", title: "Apple Inc." },
   { ticker: "TSLA", title: "Tesla Inc." },
   { ticker: "NVDA", title: "NVIDIA Corporation" },
-  { ticker: "AAPL", title: "Apple Inc." },
   { ticker: "MSFT", title: "Microsoft Corporation" },
   { ticker: "GOOGL", title: "Alphabet Inc." },
   { ticker: "AMZN", title: "Amazon.com Inc." },

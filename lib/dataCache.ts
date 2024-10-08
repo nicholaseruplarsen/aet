@@ -4,32 +4,44 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { StockData, FinancialData } from '@/types';
 
-// In-memory caches
-let stockDataCache: StockData[] | null = null;
-let financialStatementsCache: Record<string, FinancialData> | null = null;
+// In-memory caches per ticker
+const stockDataCache: { [ticker: string]: StockData[] | null } = {};
+const financialStatementsCache: { [ticker: string]: Record<string, FinancialData> | null } = {};
 
 /**
- * Fetch and cache stock data.
- * @returns Promise resolving to an array of StockData
+ * Fetch and cache stock data for a given ticker.
+ * @param ticker The stock ticker symbol.
+ * @returns Promise resolving to an array of StockData or null if not found.
  */
-export async function getStockData(): Promise<StockData[]> {
-  if (!stockDataCache) {
-    const stockDataPath = path.join(process.cwd(), 'public', 'data', 'stockData.json');
-    const stockDataRaw = await fs.readFile(stockDataPath, 'utf8');
-    stockDataCache = JSON.parse(stockDataRaw) as StockData[];
+export async function getStockData(ticker: string): Promise<StockData[] | null> {
+  if (!(ticker in stockDataCache)) {
+    const stockDataPath = path.join(process.cwd(), 'public', 'data', ticker, 'stockData.json');
+    try {
+      const stockDataRaw = await fs.readFile(stockDataPath, 'utf8');
+      stockDataCache[ticker] = JSON.parse(stockDataRaw) as StockData[];
+    } catch (error) {
+      console.error(`Error reading stock data for ticker "${ticker}":`, error);
+      stockDataCache[ticker] = null;
+    }
   }
-  return stockDataCache;
+  return stockDataCache[ticker];
 }
 
 /**
- * Fetch and cache financial statements.
- * @returns Promise resolving to a Record of FinancialData
+ * Fetch and cache financial statements for a given ticker.
+ * @param ticker The stock ticker symbol.
+ * @returns Promise resolving to a Record of FinancialData or null if not found.
  */
-export async function getFinancialStatements(): Promise<Record<string, FinancialData>> {
-  if (!financialStatementsCache) {
-    const financialStatementsPath = path.join(process.cwd(), 'public', 'data', 'financialStatements.json');
-    const financialStatementsRaw = await fs.readFile(financialStatementsPath, 'utf8');
-    financialStatementsCache = JSON.parse(financialStatementsRaw) as Record<string, FinancialData>;
+export async function getFinancialStatements(ticker: string): Promise<Record<string, FinancialData> | null> {
+  if (!(ticker in financialStatementsCache)) {
+    const financialStatementsPath = path.join(process.cwd(), 'public', 'data', ticker, 'financialStatements.json');
+    try {
+      const financialStatementsRaw = await fs.readFile(financialStatementsPath, 'utf8');
+      financialStatementsCache[ticker] = JSON.parse(financialStatementsRaw) as Record<string, FinancialData>;
+    } catch (error) {
+      console.error(`Error reading financial statements for ticker "${ticker}":`, error);
+      financialStatementsCache[ticker] = null;
+    }
   }
-  return financialStatementsCache;
+  return financialStatementsCache[ticker];
 }

@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "ticker": "AAPL",
+    "title": "Apple Inc."
+  },
+  {
+    "id": 2,
+    "ticker": "MSFT",
+    "title": "MICROSOFT CORP"
+  },
+  {
+    "id": 3,
+    "ticker": "GOOGL",
+    "title": "Alphabet Inc."
+  },
+  {
+    "id": 4,
+    "ticker": "AMZN",
+    "title": "AMAZON COM INC"
+  },
+  {
+    "id": 5,
+    "ticker": "NVDA",
+    "title": "NVIDIA CORP"
+  }
+]

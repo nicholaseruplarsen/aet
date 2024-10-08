@@ -2,12 +2,11 @@ import os
 import csv
 import pandas as pd
 import numpy as np
+import re
 from pathlib import Path
 
 # Define paths
 DATA_DIR = Path('./data')
-OUTPUT_DIR = Path('./public/data')
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn't exist
 
 # Function to extract the first column from a CSV file
 def get_first_column(csv_file_path):
@@ -29,8 +28,10 @@ def preprocess_quarterly_data(file_path):
     # Reset index to turn the date index into a column
     df.reset_index(inplace=True)
     df.rename(columns={'index': 'Date'}, inplace=True)
+    # Remove timezone information from 'Date' column
+    df['Date'] = df['Date'].apply(lambda x: re.sub(r'[-+]\d{2}:\d{2}$', '', x))
     # Convert 'Date' column to datetime format
-    df['Date'] = pd.to_datetime(df['Date'])
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
     # Sort the DataFrame by 'Date'
     df = df.sort_values('Date')
 
@@ -98,100 +99,141 @@ def recalculate_ratios(df):
 
 # Main processing function
 def process_data():
-    # Step 1: Extract and print the first column from each quarterly CSV file
-    quarterly_files = [
-        'aapl-balance-sheet-quarterly.csv',
-        'aapl-cash-flow-statement-quarterly.csv',
-        'aapl-income-statement-quarterly.csv',
-        'aapl-ratios-quarterly.csv'
-    ]
+    # Get the list of tickers (subdirectories in the DATA_DIR)
+    tickers = [d.name for d in DATA_DIR.iterdir() if d.is_dir()]
 
-    for file_name in quarterly_files:
-        file_path = DATA_DIR / file_name
-        first_col = get_first_column(file_path)
-        # Optionally, you can print or log the first column if needed
-        # For brevity, it's not printed here
+    for ticker in tickers:
+        print(f"Processing data for {ticker}...")
+        ticker_dir = DATA_DIR / ticker
+        output_dir = ticker_dir  # Save output into the ticker's own folder
 
-    # Step 2: Load and preprocess the daily stock data
-    daily_file = DATA_DIR / 'AAPL.csv'
-    df_daily = pd.read_csv(daily_file)
-    df_daily['Date'] = pd.to_datetime(df_daily['Date'])
-    df_daily = df_daily.sort_values('Date')
+        # Step 1: Define file paths for the ticker
+        # List of quarterly files to process
+        quarterly_files = {
+            'income': f'{ticker.lower()}-income-statement-quarterly.csv',
+            'balance': f'{ticker.lower()}-balance-sheet-quarterly.csv',
+            'cash_flow': f'{ticker.lower()}-cash-flow-statement-quarterly.csv',
+            'ratios': f'{ticker.lower()}-ratios-quarterly.csv'
+        }
 
-    # Step 3: Preprocess all quarterly data files
-    df_income = preprocess_quarterly_data(DATA_DIR / 'aapl-income-statement-quarterly.csv')
-    df_balance = preprocess_quarterly_data(DATA_DIR / 'aapl-balance-sheet-quarterly.csv')
-    df_cash_flow = preprocess_quarterly_data(DATA_DIR / 'aapl-cash-flow-statement-quarterly.csv')
-    df_ratios = preprocess_quarterly_data(DATA_DIR / 'aapl-ratios-quarterly.csv')
+        # Check if all required files exist
+        missing_files = [fname for fname in quarterly_files.values() if not (ticker_dir / fname).exists()]
+        if missing_files:
+            print(f"Missing files for {ticker}: {missing_files}. Skipping...")
+            continue  # Skip this ticker if any file is missing
 
-    # Step 4: Merge the quarterly DataFrames on 'Date'
-    df_quarterly = df_income.merge(df_balance, on='Date', how='outer', suffixes=('', '_balance'))
-    df_quarterly = df_quarterly.merge(df_cash_flow, on='Date', how='outer', suffixes=('', '_cash_flow'))
-    df_quarterly = df_quarterly.merge(df_ratios, on='Date', how='outer', suffixes=('', '_ratios'))
-    df_quarterly = df_quarterly.sort_values('Date')
+        # Step 2: Load and preprocess the quarterly data
+        df_income = preprocess_quarterly_data(ticker_dir / quarterly_files['income'])
+        df_balance = preprocess_quarterly_data(ticker_dir / quarterly_files['balance'])
+        df_cash_flow = preprocess_quarterly_data(ticker_dir / quarterly_files['cash_flow'])
+        df_ratios = preprocess_quarterly_data(ticker_dir / quarterly_files['ratios'])
 
-    # Reorder columns: income, balance, cash flow, ratios
-    income_cols = df_income.columns.drop('Date')
-    balance_cols = df_balance.columns.drop('Date')
-    cash_flow_cols = df_cash_flow.columns.drop('Date')
-    ratios_cols = df_ratios.columns.drop('Date')
-    cols_order = ['Date'] + list(income_cols) + list(balance_cols) + list(cash_flow_cols) + list(ratios_cols)
-    cols_order = pd.Index(cols_order).unique().tolist()  # Remove duplicates
-    df_quarterly = df_quarterly.reindex(columns=cols_order)
+        # Step 3: Merge the quarterly DataFrames on 'Date'
+        df_quarterly = df_income.merge(df_balance, on='Date', how='outer', suffixes=('', '_balance'))
+        df_quarterly = df_quarterly.merge(df_cash_flow, on='Date', how='outer', suffixes=('', '_cash_flow'))
+        df_quarterly = df_quarterly.merge(df_ratios, on='Date', how='outer', suffixes=('', '_ratios'))
+        df_quarterly = df_quarterly.sort_values('Date')
 
-    # Step 5: Handle missing values
-    absolute_cols = set(income_cols).union(balance_cols).union(cash_flow_cols)
-    ratio_cols = set(ratios_cols)
+        # Reorder columns: income, balance, cash flow, ratios
+        income_cols = df_income.columns.drop('Date')
+        balance_cols = df_balance.columns.drop('Date')
+        cash_flow_cols = df_cash_flow.columns.drop('Date')
+        ratios_cols = df_ratios.columns.drop('Date')
+        cols_order = ['Date'] + list(income_cols) + list(balance_cols) + list(cash_flow_cols) + list(ratios_cols)
+        cols_order = pd.Index(cols_order).unique().tolist()  # Remove duplicates
+        df_quarterly = df_quarterly.reindex(columns=cols_order)
 
-    # Fill absolute value columns using ffill and bfill
-    df_quarterly[list(absolute_cols)] = df_quarterly[list(absolute_cols)].ffill().bfill()
-    df_quarterly[list(absolute_cols)] = df_quarterly[list(absolute_cols)].interpolate(method='linear', limit_direction='both')
+        # Step 4: Handle missing values
+        absolute_cols = set(income_cols).union(balance_cols).union(cash_flow_cols)
+        ratio_cols = set(ratios_cols)
 
-    # Fill ratio columns using ffill and bfill
-    df_quarterly[list(ratio_cols)] = df_quarterly[list(ratio_cols)].ffill().bfill()
-    df_quarterly[list(ratio_cols)] = df_quarterly[list(ratio_cols)].interpolate(method='linear', limit_direction='both')
+        # Fill absolute value columns using ffill and bfill
+        df_quarterly[list(absolute_cols)] = df_quarterly[list(absolute_cols)].ffill().bfill()
+        df_quarterly[list(absolute_cols)] = df_quarterly[list(absolute_cols)].interpolate(method='linear', limit_direction='both')
 
-    # Step 6: Merge the daily data with the quarterly data
-    df_merged = pd.merge_asof(df_daily, df_quarterly, on='Date', direction='backward')
+        # Fill ratio columns using ffill and bfill
+        df_quarterly[list(ratio_cols)] = df_quarterly[list(ratio_cols)].ffill().bfill()
+        df_quarterly[list(ratio_cols)] = df_quarterly[list(ratio_cols)].interpolate(method='linear', limit_direction='both')
 
-    # Rearrange columns: Date, daily data, quarterly data
-    daily_cols = df_daily.columns.tolist()
-    quarterly_cols = df_quarterly.columns.drop('Date').tolist()
-    final_cols = ['Date'] + daily_cols[1:] + quarterly_cols
-    df_merged = df_merged.reindex(columns=final_cols)
+        # Get the earliest date in the quarterly data
+        earliest_quarterly_date = df_quarterly['Date'].min()
 
-    # Step 7: Fill any remaining missing values in the merged DataFrame
-    df_merged[list(absolute_cols)] = df_merged[list(absolute_cols)].ffill().bfill()
-    df_merged[list(ratio_cols)] = df_merged[list(ratio_cols)].ffill().bfill()
+        # Step 5: Load and preprocess the daily stock data
+        daily_file = ticker_dir / f'{ticker}.csv'
+        if not daily_file.exists():
+            print(f"Daily data file {daily_file} does not exist for {ticker}. Skipping...")
+            continue
 
-    # Step 8: Compute percentage change from the last quarter for each financial column
-    df_quarterly_pct = df_quarterly.copy()
-    df_quarterly_pct.set_index('Date', inplace=True)
-    financial_cols = df_quarterly.columns.drop('Date')
+        df_daily = pd.read_csv(daily_file)
 
-    # Calculate percentage change without using the deprecated 'pad' fill_method
-    df_quarterly_pct[financial_cols] = df_quarterly_pct[financial_cols].pct_change(fill_method=None)
-    df_quarterly_pct = df_quarterly_pct.reset_index()  # Avoid inplace=True to prevent fragmentation
+        # Remove timezone information from 'Date' column
+        df_daily['Date'] = df_daily['Date'].apply(lambda x: re.sub(r'[-+]\d{2}:\d{2}$', '', x))
+        # Convert 'Date' column to datetime format
+        df_daily['Date'] = pd.to_datetime(df_daily['Date'], errors='coerce')
 
-    # Rename columns to indicate percentage change
-    df_quarterly_pct.rename(columns=lambda x: x + ' Pct Change' if x != 'Date' else x, inplace=True)
+        # Check for unparseable dates
+        if df_daily['Date'].isnull().any():
+            print(f"Found unparseable dates in {daily_file}. Skipping...")
+            continue
 
-    # Merge the percentage change columns into the merged DataFrame
-    df_merged = pd.merge_asof(df_merged, df_quarterly_pct, on='Date', direction='backward')
+        df_daily = df_daily.sort_values('Date')
 
-    # Fill missing values in percentage change columns using ffill and bfill
-    pct_change_cols = [col for col in df_merged.columns if 'Pct Change' in col]
-    df_merged[pct_change_cols] = df_merged[pct_change_cols].ffill().bfill()
+        # Step 6: Delete any rows prior to the earliest date in quarterly data, but include at least one trading date before
+        # Find the index of the earliest date in df_daily that is greater than or equal to earliest_quarterly_date
+        idx_list = df_daily[df_daily['Date'] >= earliest_quarterly_date].index.tolist()
 
-    # Step 9: Recalculate financial ratios to ensure accuracy
-    df_merged = recalculate_ratios(df_merged)
+        if idx_list:
+            idx = idx_list[0]
+            if idx > 0:
+                # Include one trading date before the earliest quarterly date
+                start_idx = idx - 1
+            else:
+                start_idx = idx
+            df_daily = df_daily.loc[start_idx:]
+        else:
+            print(f"No daily data on or after earliest quarterly date for {ticker}. Skipping...")
+            continue
 
-    # Step 10: Save the merged DataFrame to a new CSV file
-    final_csv_path = DATA_DIR / 'AAPL_with_all.csv'
-    df_merged.to_csv(final_csv_path, index=False)
+        # Step 7: Merge the daily data with the quarterly data
+        df_merged = pd.merge_asof(df_daily, df_quarterly, on='Date', direction='backward')
 
-    # Optional: Display the first few rows of the merged DataFrame
-    print(f"Merged data saved to {final_csv_path}")
+        # Rearrange columns: Date, daily data, quarterly data
+        daily_cols = df_daily.columns.tolist()
+        quarterly_cols = df_quarterly.columns.drop('Date').tolist()
+        final_cols = ['Date'] + daily_cols[1:] + quarterly_cols
+        df_merged = df_merged.reindex(columns=final_cols)
+
+        # Step 8: Fill any remaining missing values in the merged DataFrame
+        df_merged[list(absolute_cols)] = df_merged[list(absolute_cols)].ffill().bfill()
+        df_merged[list(ratio_cols)] = df_merged[list(ratio_cols)].ffill().bfill()
+
+        # Step 9: Compute percentage change from the last quarter for each financial column
+        df_quarterly_pct = df_quarterly.copy()
+        df_quarterly_pct.set_index('Date', inplace=True)
+        financial_cols = df_quarterly.columns.drop('Date')
+
+        # Calculate percentage change
+        df_quarterly_pct[financial_cols] = df_quarterly_pct[financial_cols].pct_change(fill_method=None)
+        df_quarterly_pct = df_quarterly_pct.reset_index()  # Avoid inplace=True to prevent fragmentation
+
+        # Rename columns to indicate percentage change
+        df_quarterly_pct.rename(columns=lambda x: x + ' Pct Change' if x != 'Date' else x, inplace=True)
+
+        # Merge the percentage change columns into the merged DataFrame
+        df_merged = pd.merge_asof(df_merged, df_quarterly_pct, on='Date', direction='backward')
+
+        # Fill missing values in percentage change columns using ffill and bfill
+        pct_change_cols = [col for col in df_merged.columns if 'Pct Change' in col]
+        df_merged[pct_change_cols] = df_merged[pct_change_cols].ffill().bfill()
+
+        # Step 10: Recalculate financial ratios to ensure accuracy
+        df_merged = recalculate_ratios(df_merged)
+
+        # Step 11: Save the merged DataFrame to a new CSV file in the ticker's own folder
+        final_csv_path = output_dir / f'{ticker}_with_all.csv'
+        df_merged.to_csv(final_csv_path, index=False)
+
+        print(f"Merged data for {ticker} saved to {final_csv_path}")
 
 if __name__ == "__main__":
     process_data()

@@ -302,4 +302,7 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
   );
 });
 
+// Assign displayName
+FinanceSummaryTable.displayName = 'FinanceSummaryTable';
+
 export default FinanceSummaryTable;
