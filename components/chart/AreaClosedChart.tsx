@@ -435,9 +435,7 @@ const GraphSlider = memo(function GraphSlider({ data, width, height, top, state,
               fill={color}
               className="text-sm font-bold"
             >
-              {`${state.multiplier >= 0 ? '' : '-'}${Math.abs(
-                state.multiplier.toFixed(2)
-              )}x`}
+              {state.multiplier < 1 ? '↓' : '↑'}{state.multiplier.toFixed(2)}x
             </text>
           )}
         </g>
