@@ -1,4 +1,4 @@
-// scripts/convertCsvToJson.js
+// stocks/scripts/convertCsvToJson.js
 
 const fs = require('fs');
 const path = require('path');
@@ -8,7 +8,7 @@ const csv = require('csvtojson');
 const DATA_DIR = path.join(__dirname, '../data');
 const PUBLIC_DATA_DIR = path.join(__dirname, '../public/data');
 
-// Define the financial fields to extract
+// Define the financial fields to extract, including the new Present Value field
 const financialFields = [
   'Market Capitalization',
   'Revenue',
@@ -26,10 +26,13 @@ const financialFields = [
   'P/FCF Ratio',
   'P/OCF Ratio',
   'Quick Ratio',
+  'Present Value of Future Cash Flows', // New Field Added
 ];
 
-// Define the corresponding 'Pct Change' fields
-const pctChangeFields = financialFields.map(field => `${field} Pct Change`);
+// Define the corresponding 'Pct Change' fields, excluding the new Present Value field
+const pctChangeFields = financialFields
+  .filter(field => field !== 'Present Value of Future Cash Flows') // Exclude PV from Pct Change
+  .map(field => `${field} Pct Change`);
 
 // List of ratio fields that need to be rounded
 const ratioFields = [
@@ -138,7 +141,7 @@ const processTickerCsv = async (ticker, csvFilePath, outputDir) => {
         }
       });
 
-      // Extract corresponding 'Pct Change' fields
+      // Extract corresponding 'Pct Change' fields, excluding PV
       pctChangeFields.forEach((pctField) => {
         let value = row[pctField];
 

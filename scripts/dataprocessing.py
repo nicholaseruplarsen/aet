@@ -1,3 +1,5 @@
+# stocks/scripts/dataprocessing.py
+
 import os
 import csv
 import pandas as pd
@@ -94,6 +96,20 @@ def recalculate_ratios(df):
     df = pd.concat([df, temp_df], axis=1)
 
     return df
+
+# Function to calculate Present Value of Future Cash Flows
+def calculate_present_value(df, discount_rate=0.025, growth_rate=0.005):
+    """
+    Calculates the Present Value of Future Cash Flows using the Gordon Growth Model.
+
+    PV = CF * (1 + g) / (r - g)
+
+    :param df: pandas DataFrame containing 'Operating Cash Flow'
+    :param discount_rate: Discount rate per period (quarterly)
+    :param growth_rate: Growth rate per period (quarterly)
+    :return: pandas Series containing the PV values
+    """
+    return df['Operating Cash Flow'] * (1 + growth_rate) / (discount_rate - growth_rate)
 
 # Main processing function
 def process_data():
@@ -227,7 +243,14 @@ def process_data():
         # Step 10: Recalculate financial ratios to ensure accuracy
         df_merged = recalculate_ratios(df_merged)
 
-        # Step 11: Save the merged DataFrame to a new CSV file in the ticker's own folder
+        # Step 11: Calculate Present Value of Future Cash Flows and add to financial statements
+        df_merged['Present Value of Future Cash Flows'] = calculate_present_value(df_merged)
+
+        # Handle cases where PV might not be calculable due to missing cash flow data
+        df_merged['Present Value of Future Cash Flows'] = df_merged['Present Value of Future Cash Flows'].replace([np.inf, -np.inf], np.nan)
+        df_merged['Present Value of Future Cash Flows'] = df_merged['Present Value of Future Cash Flows'].fillna('N/A')
+
+        # Step 12: Save the merged DataFrame to a new CSV file in the ticker's own folder
         final_csv_path = output_dir / f'{ticker}_with_all.csv'
         df_merged.to_csv(final_csv_path, index=False)
 

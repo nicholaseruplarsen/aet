@@ -42,6 +42,9 @@ export interface FinancialData {
   'PS Ratio Pct Change'?: number | string;
   'PB Ratio Pct Change'?: number | string;
   'Quick Ratio Pct Change'?: number | string;
+
+  // **New Field**
+  'Present Value of Future Cash Flows'?: number | string; // Added Present Value
 }
 
 // Re-export Interval type for centralized access

@@ -56,6 +56,13 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
       format: 'currency',
       tooltip: 'Expenses related to developing new products or services',
     },
+    // **New Metric**
+    {
+      key: 'Present Value of Future Cash Flows',
+      label: 'PV of Future Cash Flows',
+      format: 'currency',
+      tooltip: 'Present Value of Future Cash Flows: Calculated using the Gordon Growth Model',
+    },
   ];
 
   const ratios: Metric[] = [
@@ -99,11 +106,11 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
 
   // Define formatting functions
   const formatValue = (value: any, format: string) => {
-    if (value === null || value === undefined || isNaN(Number(value))) {
+    if (value === null || value === undefined || (typeof value === 'number' && isNaN(value))) {
       return 'N/A';
     }
 
-    const numValue = Number(value);
+    const numValue = typeof value === 'number' ? value : parseFloat(value.toString());
 
     switch (format) {
       case 'currency':
@@ -216,8 +223,8 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
                           : formattedPctChange === 'N/A' ||
                             formattedPctChange === '∞' ||
                             formattedPctChange === '-∞'
-                            ? 'bg-gray-200 text-gray-800 dark:bg-gray-950 dark:text-gray-400'
-                            : 'bg-red-200 text-red-800 dark:bg-red-950 dark:text-red-500'
+                              ? 'bg-gray-200 text-gray-800 dark:bg-gray-950 dark:text-gray-400'
+                              : 'bg-red-200 text-red-800 dark:bg-red-950 dark:text-red-500'
                       )}
                     >
                       {formattedPctChange}
@@ -276,8 +283,8 @@ const FinanceSummaryTable = memo(({ data }: FinanceSummaryTableProps) => {
                           : formattedPctChange === 'N/A' ||
                             formattedPctChange === '∞' ||
                             formattedPctChange === '-∞'
-                            ? 'bg-gray-200 text-gray-800 dark:bg-gray-950 dark:text-gray-400'
-                            : 'bg-red-200 text-red-800 dark:bg-red-950 dark:text-red-500'
+                              ? 'bg-gray-200 text-gray-800 dark:bg-gray-950 dark:text-gray-400'
+                              : 'bg-red-200 text-red-800 dark:bg-red-950 dark:text-red-500'
                       )}
                     >
                       {formattedPctChange}

@@ -34,7 +34,8 @@ export default async function StocksPage({ params }: Props) {
   const companyName = tickerEntry ? tickerEntry.title : ticker;
 
   return (
-    <div className="lg:px-20">
+    // <div className="lg:px-20">
+    <div>
       <Card>
         <CardContent className="lg:px-10 lg:py-7">
           <Suspense fallback={<div>Loading...</div>}>
